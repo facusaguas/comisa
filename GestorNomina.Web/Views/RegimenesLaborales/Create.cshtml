@@ -1,0 +1,102 @@
+@model GestorNomina.Web.Models.ViewModels.RegimenLaboralViewModel
+
+@{
+    ViewData["Title"] = "Nuevo Régimen Laboral";
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">Nuevo Régimen Laboral</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
+                    Volver al Listado
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-12">
+                <form asp-action="Create" method="post">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Datos del Régimen Laboral</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label asp-for="Nombre" class="form-label required">Nombre</label>
+                                        <input asp-for="Nombre" class="form-control" placeholder="Ej: Régimen 14x7" />
+                                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="DiasTrabajo" class="form-label required">Días de Trabajo</label>
+                                        <input asp-for="DiasTrabajo" type="number" class="form-control" placeholder="Ej: 14" />
+                                        <span asp-validation-for="DiasTrabajo" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="DiasDescanso" class="form-label required">Días de Descanso</label>
+                                        <input asp-for="DiasDescanso" type="number" class="form-control" placeholder="Ej: 7" />
+                                        <span asp-validation-for="DiasDescanso" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="MaxHorasDiarias" class="form-label required">Máximo Horas Diarias</label>
+                                        <input asp-for="MaxHorasDiarias" type="number" step="0.01" class="form-control" placeholder="Ej: 8" />
+                                        <span asp-validation-for="MaxHorasDiarias" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="HorasSemanalesLimite" class="form-label">Horas Semanales Límite</label>
+                                        <input asp-for="HorasSemanalesLimite" type="number" step="0.01" class="form-control" placeholder="Ej: 48" />
+                                        <span asp-validation-for="HorasSemanalesLimite" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label asp-for="Descripcion" class="form-label">Descripción</label>
+                                        <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Descripción adicional del régimen..."></textarea>
+                                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <div class="d-flex">
+                                <a asp-action="Index" class="btn btn-link">Cancelar</a>
+                                <button type="submit" class="btn btn-primary ms-auto">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+                                    Crear Régimen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,109 @@
+@model GestorNomina.Web.Models.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Nuevo Usuario";
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">Nuevo Usuario</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
+                    Volver al Listado
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-12">
+                <form asp-action="Create" method="post">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Datos del Usuario</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Nombre" class="form-label required">Nombre</label>
+                                        <input asp-for="Nombre" class="form-control" placeholder="Nombre del usuario" />
+                                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Apellido" class="form-label required">Apellido</label>
+                                        <input asp-for="Apellido" class="form-control" placeholder="Apellido del usuario" />
+                                        <span asp-validation-for="Apellido" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Email" class="form-label required">Correo Electrónico</label>
+                                        <input asp-for="Email" type="email" class="form-control" placeholder="usuario@ejemplo.com" />
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="RolId" class="form-label required">Rol</label>
+                                        <select asp-for="RolId" class="form-select">
+                                            <option value="">Seleccione un rol...</option>
+                                            @if (ViewBag.Roles != null)
+                                            {
+                                                @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Roles)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="RolId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Password" class="form-label required">Contraseña</label>
+                                        <input asp-for="Password" type="password" class="form-control" placeholder="Mínimo 6 caracteres" />
+                                        <span asp-validation-for="Password" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="ConfirmPassword" class="form-label required">Confirmar Contraseña</label>
+                                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Repita la contraseña" />
+                                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <div class="d-flex">
+                                <a asp-action="Index" class="btn btn-link">Cancelar</a>
+                                <button type="submit" class="btn btn-primary ms-auto">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+                                    Crear Usuario
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

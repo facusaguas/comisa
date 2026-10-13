@@ -1,0 +1,72 @@
+@model Usuario
+@{
+    ViewData["PageTitle"] = "Eliminar Usuario";
+    ViewData["PagePretitle"] = "Usuarios";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-alert-triangle icon"></i>
+                    Confirmar Eliminación
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <div class="d-flex">
+                        <div>
+                            <i class="ti ti-alert-circle icon alert-icon"></i>
+                        </div>
+                        <div>
+                            <h4 class="alert-title">¡Atención!</h4>
+                            <div class="text-muted">
+                                Esta acción no se puede deshacer. El usuario será eliminado permanentemente del sistema.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="mb-3">¿Está seguro de eliminar este usuario?</h4>
+
+                <dl class="row">
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">@Model.Nombre @Model.Apellido</dd>
+
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">@Model.Email</dd>
+
+                    <dt class="col-sm-4">Rol</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-azure">@Model.Rol?.Nombre</span>
+                    </dd>
+
+                    <dt class="col-sm-4">Estado</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactivo</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer">
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex">
+                        <a href="@Url.Action("Index")" class="btn btn-link">Cancelar</a>
+                        <button type="submit" class="btn btn-danger ms-auto">
+                            <i class="ti ti-trash icon"></i>
+                            Sí, Eliminar Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

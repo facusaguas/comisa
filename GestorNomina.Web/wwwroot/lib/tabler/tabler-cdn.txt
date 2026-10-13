@@ -1,0 +1,19 @@
+# Tabler UI - CDN Resources
+# Version: 1.0.0-beta20
+# Documentation: https://docs.tabler.io/
+
+## CSS
+https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css
+https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css
+
+## JavaScript
+https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js
+
+## Dependencies (ya incluidas en Tabler)
+- Bootstrap 5.3.x
+- Tabler Icons
+
+## Opcional
+https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-flags.min.css
+https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-payments.min.css
+https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-vendors.min.css

@@ -1,0 +1,68 @@
+@model LoginViewModel
+@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="text-center mb-4">
+    <a href="/" class="navbar-brand navbar-brand-autodark">
+        <h1 class="text-white mb-0">GestorHoras</h1>
+    </a>
+</div>
+
+<div class="card card-md login-card">
+    <div class="card-body">
+        <h2 class="card-title text-center mb-4 login-title">Iniciar Sesión</h2>
+        <p class="text-muted text-center login-subtitle">
+            Ingresa tus credenciales para acceder al sistema
+        </p>
+
+        <!-- Mostrar mensajes -->
+        <partial name="_AlertMessages" />
+
+        <form asp-action="Login" asp-controller="Auth" method="post">
+            <input type="hidden" asp-for="ReturnUrl" />
+            
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" placeholder="tu@email.com" autofocus />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label">
+                    Contraseña
+                    <span class="form-label-description">
+                        <a href="/Auth/RecuperarPassword" class="text-muted">¿Olvidaste tu contraseña?</a>
+                    </span>
+                </label>
+                <input asp-for="Password" class="form-control" placeholder="Tu contraseña" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <span class="form-check-label">Recordarme en este dispositivo</span>
+                </label>
+            </div>
+
+            <div class="form-footer">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="ti ti-login icon"></i>
+                    Iniciar Sesión
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="text-center text-white mt-4">
+    <small>
+        Sistema de Gestión de Horas Laborales &copy; @DateTime.Now.Year
+    </small>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

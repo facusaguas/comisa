@@ -1,0 +1,86 @@
+@* Mostrar mensajes de TempData *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="d-flex">
+            <div>
+                <i class="ti ti-check icon alert-icon"></i>
+            </div>
+            <div>
+                <h4 class="alert-title">¡Éxito!</h4>
+                <div class="text-muted">@TempData["SuccessMessage"]</div>
+            </div>
+        </div>
+        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="d-flex">
+            <div>
+                <i class="ti ti-alert-circle icon alert-icon"></i>
+            </div>
+            <div>
+                <h4 class="alert-title">Error</h4>
+                <div class="text-muted">@TempData["ErrorMessage"]</div>
+            </div>
+        </div>
+        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+}
+
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <div class="d-flex">
+            <div>
+                <i class="ti ti-alert-triangle icon alert-icon"></i>
+            </div>
+            <div>
+                <h4 class="alert-title">Advertencia</h4>
+                <div class="text-muted">@TempData["WarningMessage"]</div>
+            </div>
+        </div>
+        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+}
+
+@if (TempData["InfoMessage"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <div class="d-flex">
+            <div>
+                <i class="ti ti-info-circle icon alert-icon"></i>
+            </div>
+            <div>
+                <h4 class="alert-title">Información</h4>
+                <div class="text-muted">@TempData["InfoMessage"]</div>
+            </div>
+        </div>
+        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+}
+
+@* Mostrar errores de validación del ModelState *@
+@if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="d-flex">
+            <div>
+                <i class="ti ti-alert-circle icon alert-icon"></i>
+            </div>
+            <div>
+                <h4 class="alert-title">Errores de Validación</h4>
+                <ul class="mb-0">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+}

@@ -1,0 +1,150 @@
+@model GestorNomina.Web.Models.ViewModels.RegimenLaboralViewModel
+
+@{
+    ViewData["Title"] = "Detalles del Régimen Laboral";
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">Detalles del Régimen Laboral</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                        Editar
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
+                        Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Información del Régimen</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="datagrid">
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Nombre</div>
+                                <div class="datagrid-content"><strong>@Model.Nombre</strong></div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Formato</div>
+                                <div class="datagrid-content">
+                                    <span class="badge bg-primary badge-pill">@Model.Formato</span>
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Días de Trabajo</div>
+                                <div class="datagrid-content">@Model.DiasTrabajo días</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Días de Descanso</div>
+                                <div class="datagrid-content">@Model.DiasDescanso días</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Ciclo Completo</div>
+                                <div class="datagrid-content">
+                                    <span class="badge bg-info">@Model.CicloCompleto días</span>
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Máximo Horas Diarias</div>
+                                <div class="datagrid-content">@Model.MaxHorasDiarias hs</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Horas Semanales Límite</div>
+                                <div class="datagrid-content">@(Model.HorasSemanalesLimite?.ToString() ?? "-") hs</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Horas Totales por Ciclo</div>
+                                <div class="datagrid-content">
+                                    <span class="badge bg-success">@Model.HorasTotalesCiclo hs</span>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Descripcion))
+                            {
+                                <div class="datagrid-item">
+                                    <div class="datagrid-title">Descripción</div>
+                                    <div class="datagrid-content">@Model.Descripcion</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Resumen</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="display-4 text-primary">@Model.Formato</div>
+                            <div class="text-muted">Formato del Régimen</div>
+                        </div>
+                        <hr />
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <span class="status-dot status-dot-animated bg-success"></span>
+                                    </div>
+                                    <div class="col text-truncate">
+                                        <div class="text-reset d-block">Días de Trabajo</div>
+                                        <div class="text-muted text-truncate mt-n1">@Model.DiasTrabajo días</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <span class="status-dot status-dot-animated bg-info"></span>
+                                    </div>
+                                    <div class="col text-truncate">
+                                        <div class="text-reset d-block">Días de Descanso</div>
+                                        <div class="text-muted text-truncate mt-n1">@Model.DiasDescanso días</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <span class="status-dot status-dot-animated bg-warning"></span>
+                                    </div>
+                                    <div class="col text-truncate">
+                                        <div class="text-reset d-block">Horas Diarias</div>
+                                        <div class="text-muted text-truncate mt-n1">@Model.MaxHorasDiarias hs máximo</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <span class="status-dot status-dot-animated bg-primary"></span>
+                                    </div>
+                                    <div class="col text-truncate">
+                                        <div class="text-reset d-block">Horas por Ciclo</div>
+                                        <div class="text-muted text-truncate mt-n1">@Model.HorasTotalesCiclo hs totales</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

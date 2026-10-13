@@ -1,0 +1,141 @@
+@model GestorNomina.Web.Models.ViewModels.ProyectoViewModel
+
+@{
+    ViewData["Title"] = "Detalles del Proyecto";
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">Detalles del Proyecto</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                        Editar
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
+                        Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-cards">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Información del Proyecto</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="datagrid">
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Código</div>
+                                <div class="datagrid-content"><strong>@Model.Codigo</strong></div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Nombre</div>
+                                <div class="datagrid-content">@Model.Nombre</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Ubicación</div>
+                                <div class="datagrid-content">@(Model.Ubicacion ?? "-")</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Régimen Laboral por Defecto</div>
+                                <div class="datagrid-content">
+                                    @if (!string.IsNullOrEmpty(Model.RegimenDefaultNombre))
+                                    {
+                                        <span class="badge bg-blue-lt">@Model.RegimenDefaultNombre</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Estado</div>
+                                <div class="datagrid-content">
+                                    @if (Model.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Cantidad de Empleados</div>
+                                <div class="datagrid-content">
+                                    <span class="badge bg-primary">@Model.CantidadEmpleados</span>
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Fecha de Registro</div>
+                                <div class="datagrid-content">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Última Actualización</div>
+                                <div class="datagrid-content">@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Empleados Asignados</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.EmpleadosAsignados != null && Model.EmpleadosAsignados.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var empleado in Model.EmpleadosAsignados)
+                                {
+                                    <div class="list-group-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />
+                                                    <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+                                                </svg>
+                                            </div>
+                                            <div class="col text-truncate">
+                                                <div class="text-reset d-block">@empleado</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-muted text-center py-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-mood-empty mb-2" width="48" height="48" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <line x1="9" y1="10" x2="9.01" y2="10"></line>
+                                    <line x1="15" y1="10" x2="15.01" y2="10"></line>
+                                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                                </svg>
+                                <p>Sin empleados asignados</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

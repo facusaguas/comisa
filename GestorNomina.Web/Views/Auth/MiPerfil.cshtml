@@ -1,0 +1,90 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Mi Perfil";
+    ViewData["PageTitle"] = "Mi Perfil";
+    ViewData["PagePretitle"] = "Cuenta";
+}
+
+<div class="row row-cards">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Información Personal</h3>
+            </div>
+            <div class="card-body">
+                <!-- Mostrar mensajes -->
+                <partial name="_AlertMessages" />
+
+                <form asp-action="MiPerfil" asp-controller="Auth" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Nombre" class="form-label"></label>
+                            <input asp-for="Nombre" class="form-control" />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Apellido" class="form-label"></label>
+                            <input asp-for="Apellido" class="form-control" />
+                            <span asp-validation-for="Apellido" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy icon"></i>
+                            Guardar Cambios
+                        </button>
+                        <a href="/" class="btn btn-link">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Información de Cuenta</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted">Rol</label>
+                    <div>
+                        <span class="badge bg-azure">@Model.RolNombre</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Fecha de Registro</label>
+                    <div>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Última Actualización</label>
+                    <div>@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+
+                <hr />
+
+                <div class="mt-3">
+                    <a href="/Auth/CambiarPassword" class="btn btn-outline-primary w-100">
+                        <i class="ti ti-lock icon"></i>
+                        Cambiar Contraseña
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

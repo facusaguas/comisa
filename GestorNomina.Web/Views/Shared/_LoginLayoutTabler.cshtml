@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>@ViewData["Title"] - Gestor de Nómina</title>
+    
+    <link rel="icon" href="~/favicon.ico" type="image/x-icon" />
+    
+    <!-- Tabler Core CSS -->
+    <link href="~/css/tabler/tabler.min.css" rel="stylesheet" />
+    
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body class="d-flex flex-column">
+    <!-- Tabler Theme Script -->
+    <script src="~/js/tabler/tabler-theme.min.js"></script>
+    
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            @await Html.PartialAsync("_AlertMessages")
+            @RenderBody()
+        </div>
+    </div>
+    
+    <!-- Tabler Core JS -->
+    <script src="~/js/tabler/tabler.min.js"></script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
