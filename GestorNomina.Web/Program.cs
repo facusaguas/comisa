@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using GestorNomina.Web.Data;
 using GestorNomina.Web.Services;
+using GestorNomina.Web.Services.Liquidacion;
 using GestorNomina.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +44,9 @@ builder.Services.AddScoped<IProyectoService, ProyectoService>();
 builder.Services.AddScoped<IRegimenLaboralService, RegimenLaboralService>();
 builder.Services.AddScoped<IActividadService, ActividadService>();
 builder.Services.AddScoped<IFeriadoService, FeriadoService>();
+
+// Registrar servicios del módulo de liquidación
+builder.Services.AddLiquidacionServices();
 
 // Configuración de Logging
 builder.Logging.ClearProviders();

@@ -63,6 +63,138 @@ namespace GestorNomina.Web.Migrations
                     b.ToTable("actividades");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Categoria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("codigo");
+
+                    b.Property<int?>("ConvenioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("convenio_id");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.HasIndex("ConvenioId");
+
+                    b.ToTable("categorias");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.ConceptoLiquidacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoTango")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo_tango");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoTango")
+                        .IsUnique();
+
+                    b.ToTable("conceptos_liquidacion");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Convenio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activo");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("convenios");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Disciplina", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("disciplinas");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Empleado", b =>
                 {
                     b.Property<int>("Id")
@@ -82,19 +214,48 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("apellido");
 
+                    b.Property<bool>("AplicaPlusAltura")
+                        .HasColumnType("boolean")
+                        .HasColumnName("aplica_plus_altura");
+
+                    b.Property<bool>("AplicaPlusFenix")
+                        .HasColumnType("boolean")
+                        .HasColumnName("aplica_plus_fenix");
+
                     b.Property<string>("Cargo")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("cargo");
 
+                    b.Property<int?>("CategoriaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("categoria_id");
+
+                    b.Property<int?>("ConvenioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("convenio_id");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("Cuil")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("cuil");
+
+                    b.Property<int?>("DisciplinaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("disciplina_id");
 
                     b.Property<string>("DocumentoIdentidad")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("documento_identidad");
+
+                    b.Property<DateTime?>("FechaAlta")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_alta");
 
                     b.Property<DateTime?>("FechaIngreso")
                         .HasColumnType("timestamp with time zone")
@@ -112,20 +273,48 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("nombre");
 
+                    b.Property<int?>("ProyectoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("proyecto_id");
+
                     b.Property<int?>("RegimenId")
                         .HasColumnType("integer")
                         .HasColumnName("regimen_id");
+
+                    b.Property<int?>("TipoLiquidacionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("tipo_liquidacion_id");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<decimal?>("ValorConvenidoDiario")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("valor_convenido_diario");
+
+                    b.Property<decimal?>("ValorHoraBasico")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("valor_hora_basico");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.HasIndex("ConvenioId");
+
+                    b.HasIndex("DisciplinaId");
 
                     b.HasIndex("Legajo")
                         .IsUnique();
 
+                    b.HasIndex("ProyectoId");
+
                     b.HasIndex("RegimenId");
+
+                    b.HasIndex("TipoLiquidacionId");
 
                     b.ToTable("empleados");
                 });
@@ -383,6 +572,10 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("proyecto_id");
 
+                    b.Property<int?>("Quincena")
+                        .HasColumnType("integer")
+                        .HasColumnName("quincena");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -450,6 +643,115 @@ namespace GestorNomina.Web.Migrations
                     b.HasIndex("RegimenDefaultId");
 
                     b.ToTable("proyectos");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Recibo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("DiasTrabajados")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("dias_trabajados");
+
+                    b.Property<decimal?>("DiferenciaControl")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("diferencia_control");
+
+                    b.Property<int>("EmpleadoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("empleado_id");
+
+                    b.Property<DateTime>("FechaCalculo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_calculo");
+
+                    b.Property<decimal?>("NetoConvenidoObjetivo")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("neto_convenido_objetivo");
+
+                    b.Property<int>("NetoRedondeado")
+                        .HasColumnType("integer")
+                        .HasColumnName("neto_redondeado");
+
+                    b.Property<string>("Periodo")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("periodo");
+
+                    b.Property<int>("Quincena")
+                        .HasColumnType("integer")
+                        .HasColumnName("quincena");
+
+                    b.Property<decimal>("TotalBruto")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("total_bruto");
+
+                    b.Property<decimal>("TotalDeducciones")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("total_deducciones");
+
+                    b.Property<decimal>("TotalNeto")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("total_neto");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmpleadoId", "Periodo", "Quincena");
+
+                    b.ToTable("recibos");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.ReciboDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConceptoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("concepto_id");
+
+                    b.Property<int>("ReciboId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recibo_id");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal>("Unidades")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("unidades");
+
+                    b.Property<decimal?>("ValorUnitario")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("valor_unitario");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptoId");
+
+                    b.HasIndex("ReciboId");
+
+                    b.ToTable("recibo_detalles");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.RegimenLaboral", b =>
@@ -574,6 +876,73 @@ namespace GestorNomina.Web.Migrations
                     b.ToTable("roles");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.TipoLiquidacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("tipos_liquidacion");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.TipoNovedad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("ColorHexDefault")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("color_hex_default");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<bool>("RequiereHoras")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requiere_horas");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("tipos_novedad");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -695,14 +1064,59 @@ namespace GestorNomina.Web.Migrations
                     b.ToTable("validaciones_registro");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Categoria", b =>
+                {
+                    b.HasOne("GestorNomina.Web.Models.Entities.Convenio", "Convenio")
+                        .WithMany("Categorias")
+                        .HasForeignKey("ConvenioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Convenio");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Empleado", b =>
                 {
+                    b.HasOne("GestorNomina.Web.Models.Entities.Categoria", "Categoria")
+                        .WithMany("Empleados")
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GestorNomina.Web.Models.Entities.Convenio", "Convenio")
+                        .WithMany("Empleados")
+                        .HasForeignKey("ConvenioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GestorNomina.Web.Models.Entities.Disciplina", "Disciplina")
+                        .WithMany("Empleados")
+                        .HasForeignKey("DisciplinaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GestorNomina.Web.Models.Entities.Proyecto", "Proyecto")
+                        .WithMany("EmpleadosLiquidacion")
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("GestorNomina.Web.Models.Entities.RegimenLaboral", "Regimen")
                         .WithMany("Empleados")
                         .HasForeignKey("RegimenId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("GestorNomina.Web.Models.Entities.TipoLiquidacion", "TipoLiquidacion")
+                        .WithMany("Empleados")
+                        .HasForeignKey("TipoLiquidacionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Categoria");
+
+                    b.Navigation("Convenio");
+
+                    b.Navigation("Disciplina");
+
+                    b.Navigation("Proyecto");
+
                     b.Navigation("Regimen");
+
+                    b.Navigation("TipoLiquidacion");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.EmpleadoProyecto", b =>
@@ -826,6 +1240,36 @@ namespace GestorNomina.Web.Migrations
                     b.Navigation("RegimenDefault");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Recibo", b =>
+                {
+                    b.HasOne("GestorNomina.Web.Models.Entities.Empleado", "Empleado")
+                        .WithMany("Recibos")
+                        .HasForeignKey("EmpleadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Empleado");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.ReciboDetalle", b =>
+                {
+                    b.HasOne("GestorNomina.Web.Models.Entities.ConceptoLiquidacion", "Concepto")
+                        .WithMany("ReciboDetalles")
+                        .HasForeignKey("ConceptoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GestorNomina.Web.Models.Entities.Recibo", "Recibo")
+                        .WithMany("Detalles")
+                        .HasForeignKey("ReciboId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Concepto");
+
+                    b.Navigation("Recibo");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Usuario", b =>
                 {
                     b.HasOne("GestorNomina.Web.Models.Entities.Rol", "Rol")
@@ -872,6 +1316,28 @@ namespace GestorNomina.Web.Migrations
                     b.Navigation("ValidacionesRegistrosConActividadSugerida");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Categoria", b =>
+                {
+                    b.Navigation("Empleados");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.ConceptoLiquidacion", b =>
+                {
+                    b.Navigation("ReciboDetalles");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Convenio", b =>
+                {
+                    b.Navigation("Categorias");
+
+                    b.Navigation("Empleados");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Disciplina", b =>
+                {
+                    b.Navigation("Empleados");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Empleado", b =>
                 {
                     b.Navigation("EmpleadosProyectos");
@@ -879,6 +1345,8 @@ namespace GestorNomina.Web.Migrations
                     b.Navigation("HorasRegistrosAprobados");
 
                     b.Navigation("HorasRegistrosRaw");
+
+                    b.Navigation("Recibos");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.HoraRegistroRaw", b =>
@@ -897,9 +1365,16 @@ namespace GestorNomina.Web.Migrations
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Proyecto", b =>
                 {
+                    b.Navigation("EmpleadosLiquidacion");
+
                     b.Navigation("EmpleadosProyectos");
 
                     b.Navigation("PeriodosCargas");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Recibo", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.RegimenLaboral", b =>
@@ -919,6 +1394,11 @@ namespace GestorNomina.Web.Migrations
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Rol", b =>
                 {
                     b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.TipoLiquidacion", b =>
+                {
+                    b.Navigation("Empleados");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Usuario", b =>

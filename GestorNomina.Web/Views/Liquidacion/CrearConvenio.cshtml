@@ -1,0 +1,48 @@
+@model GestorNomina.Web.Models.Entities.Convenio
+
+@{
+    ViewData["Title"] = "Nuevo Convenio";
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">Nuevo Convenio</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <form asp-action="CrearConvenio" method="post">
+                            <div class="mb-3">
+                                <label class="form-label required">Código</label>
+                                <input asp-for="Codigo" class="form-control" required />
+                                <span asp-validation-for="Codigo" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label required">Nombre</label>
+                                <input asp-for="Nombre" class="form-control" required />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Guardar</button>
+                                <a asp-action="Convenios" class="btn">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

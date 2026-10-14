@@ -1,0 +1,186 @@
+@model List<GestorNomina.Web.Models.Entities.HoraRegistroAprobado>
+
+@{
+    ViewData["Title"] = "Registros Aprobados";
+    var periodo = ViewBag.Periodo as GestorNomina.Web.Models.Entities.PeriodoCarga;
+    var totalHoras = Model.Sum(r => r.HorasFinales);
+    var totalModificados = Model.Count(r => r.FueModificado);
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">
+                    Proyecto: @periodo?.Proyecto.Nombre | Periodo: @periodo?.Anio-@periodo?.Mes.ToString("00")
+                </div>
+                <h2 class="page-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M9 12l2 2l4 -4"></path>
+                    </svg>
+                    Registros Aprobados
+                </h2>
+                <div class="text-muted mt-1">@Model.Count registros | @totalHoras.ToString("N2") horas totales</div>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a asp-action="PeriodosCarga" class="btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11l-4 4l4 4m-4 -4h11a4 4 0 0 0 0 -8h-1" /></svg>
+                        Volver
+                    </a>
+                    <a asp-action="ProcesarLiquidacion" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg>
+                        Procesar Liquidación
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <!-- Resumen -->
+        <div class="row row-cards mb-3">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">Total Registros</div>
+                        </div>
+                        <div class="h1 mb-0">@Model.Count</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">Total Horas</div>
+                        </div>
+                        <div class="h1 mb-0">@totalHoras.ToString("N2")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">Modificados</div>
+                        </div>
+                        <div class="h1 mb-0">@totalModificados</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">Sin Modificar</div>
+                        </div>
+                        <div class="h1 mb-0">@(Model.Count - totalModificados)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Registros -->
+        <div class="row row-deck row-cards">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Detalle de Registros Aprobados</h3>
+                        <div class="card-actions">
+                            <input type="text" class="form-control form-control-sm" placeholder="Buscar..." id="searchBox">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table table-striped" id="registrosTable">
+                            <thead>
+                                <tr>
+                                    <th>Empleado</th>
+                                    <th>Actividad</th>
+                                    <th>Fecha</th>
+                                    <th>Horas Finales</th>
+                                    <th>Estado</th>
+                                    <th>Modificado Por</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var registro in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@registro.Empleado.Legajo</strong>
+                                            <div class="text-muted small">@registro.Empleado.Apellido, @registro.Empleado.Nombre</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-blue-lt">@registro.Actividad.Codigo</span>
+                                            <div class="text-muted small">@registro.Actividad.Descripcion</div>
+                                        </td>
+                                        <td>
+                                            @registro.Fecha.ToString("dd/MM/yyyy")
+                                            <div class="text-muted small">@registro.Fecha.ToString("dddd")</div>
+                                        </td>
+                                        <td>
+                                            <strong>@registro.HorasFinales.ToString("N2")</strong>
+                                            @if (registro.FueModificado)
+                                            {
+                                                <div class="text-muted small">
+                                                    (Original: @registro.RegistroRaw.HorasCargadas.ToString("N2"))
+                                                </div>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (registro.FueModificado)
+                                            {
+                                                <span class="badge bg-warning-lt" title="@registro.MotivoModificacion">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                                                    Modificado
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success-lt">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 11 12 14 20 6" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>
+                                                    Original
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (registro.UsuarioModificador != null)
+                                            {
+                                                <span>@registro.UsuarioModificador.Nombre</span>
+                                                <div class="text-muted small">@registro.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Automático</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Búsqueda simple
+        document.getElementById('searchBox')?.addEventListener('keyup', function() {
+            var value = this.value.toLowerCase();
+            var rows = document.querySelectorAll('#registrosTable tbody tr');
+            rows.forEach(function(row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(value) ? '' : 'none';
+            });
+        });
+    </script>
+}

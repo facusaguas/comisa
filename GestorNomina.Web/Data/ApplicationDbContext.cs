@@ -19,11 +19,21 @@ public class ApplicationDbContext : DbContext
     public DbSet<EmpleadoProyecto> EmpleadosProyectos { get; set; }
     public DbSet<Feriado> Feriados { get; set; }
     public DbSet<ReglaNormativa> ReglasNormativas { get; set; }
-    public DbSet<PeriodoCarga> PeriodosCargas { get; set; }
+    public DbSet<PeriodoCarga> PeriodosCarga { get; set; }
     public DbSet<Actividad> Actividades { get; set; }
     public DbSet<HoraRegistroRaw> HorasRegistrosRaw { get; set; }
     public DbSet<HoraRegistroAprobado> HorasRegistrosAprobados { get; set; }
     public DbSet<ValidacionRegistro> ValidacionesRegistros { get; set; }
+
+    // DbSets para Liquidación
+    public DbSet<Convenio> Convenios { get; set; }
+    public DbSet<TipoLiquidacion> TiposLiquidacion { get; set; }
+    public DbSet<Categoria> Categorias { get; set; }
+    public DbSet<Disciplina> Disciplinas { get; set; }
+    public DbSet<TipoNovedad> TiposNovedad { get; set; }
+    public DbSet<ConceptoLiquidacion> ConceptosLiquidacion { get; set; }
+    public DbSet<Recibo> Recibos { get; set; }
+    public DbSet<ReciboDetalle> ReciboDetalles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -223,5 +233,95 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<HoraRegistroAprobado>()
             .HasIndex(hra => new { hra.PeriodoCargaId, hra.EmpleadoId, hra.Fecha });
+
+        // Configuración de Liquidación
+
+        // Relaciones de Empleado con catálogos de liquidación
+        modelBuilder.Entity<Empleado>()
+            .HasOne(e => e.Convenio)
+            .WithMany(c => c.Empleados)
+            .HasForeignKey(e => e.ConvenioId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Empleado>()
+            .HasOne(e => e.TipoLiquidacion)
+            .WithMany(tl => tl.Empleados)
+            .HasForeignKey(e => e.TipoLiquidacionId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Empleado>()
+            .HasOne(e => e.Categoria)
+            .WithMany(cat => cat.Empleados)
+            .HasForeignKey(e => e.CategoriaId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Empleado>()
+            .HasOne(e => e.Disciplina)
+            .WithMany(d => d.Empleados)
+            .HasForeignKey(e => e.DisciplinaId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Empleado>()
+            .HasOne(e => e.Proyecto)
+            .WithMany(p => p.EmpleadosLiquidacion)
+            .HasForeignKey(e => e.ProyectoId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Índices únicos para catálogos
+        modelBuilder.Entity<Convenio>()
+            .HasIndex(c => c.Codigo)
+            .IsUnique();
+
+        modelBuilder.Entity<TipoLiquidacion>()
+            .HasIndex(tl => tl.Codigo)
+            .IsUnique();
+
+        modelBuilder.Entity<Categoria>()
+            .HasIndex(cat => cat.Codigo)
+            .IsUnique();
+
+        modelBuilder.Entity<Disciplina>()
+            .HasIndex(d => d.Codigo)
+            .IsUnique();
+
+        modelBuilder.Entity<TipoNovedad>()
+            .HasIndex(tn => tn.Codigo)
+            .IsUnique();
+
+        modelBuilder.Entity<ConceptoLiquidacion>()
+            .HasIndex(cl => cl.CodigoTango)
+            .IsUnique();
+
+        // Índices de rendimiento para liquidación
+
+        modelBuilder.Entity<Recibo>()
+            .HasIndex(r => new { r.EmpleadoId, r.Periodo, r.Quincena });
+
+        // Relaciones de Categoria
+        modelBuilder.Entity<Categoria>()
+            .HasOne(cat => cat.Convenio)
+            .WithMany(c => c.Categorias)
+            .HasForeignKey(cat => cat.ConvenioId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Relaciones de Recibo
+        modelBuilder.Entity<Recibo>()
+            .HasOne(r => r.Empleado)
+            .WithMany(e => e.Recibos)
+            .HasForeignKey(r => r.EmpleadoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relaciones de ReciboDetalle
+        modelBuilder.Entity<ReciboDetalle>()
+            .HasOne(rd => rd.Recibo)
+            .WithMany(r => r.Detalles)
+            .HasForeignKey(rd => rd.ReciboId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ReciboDetalle>()
+            .HasOne(rd => rd.Concepto)
+            .WithMany(cl => cl.ReciboDetalles)
+            .HasForeignKey(rd => rd.ConceptoId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

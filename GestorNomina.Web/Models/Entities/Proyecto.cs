@@ -42,4 +42,5 @@ public class Proyecto
 
     public virtual ICollection<EmpleadoProyecto> EmpleadosProyectos { get; set; } = new List<EmpleadoProyecto>();
     public virtual ICollection<PeriodoCarga> PeriodosCargas { get; set; } = new List<PeriodoCarga>();
+    public virtual ICollection<Empleado> EmpleadosLiquidacion { get; set; } = new List<Empleado>();
 }

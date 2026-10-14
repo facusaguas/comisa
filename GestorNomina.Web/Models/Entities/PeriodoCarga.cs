@@ -22,6 +22,9 @@ public class PeriodoCarga
     [Column("anio")]
     public int Anio { get; set; }
 
+    [Column("quincena")]
+    public int? Quincena { get; set; } // 1 o 2, null si es mensual completo
+
     [Required]
     [MaxLength(50)]
     [Column("estado")]

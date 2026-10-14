@@ -14,6 +14,17 @@ public abstract class BaseController : Controller
     protected int? CurrentUserId => SessionHelper.GetUserId(HttpContext.Session);
 
     /// <summary>
+    /// Obtiene el ID del usuario como int (lanza excepción si no está autenticado)
+    /// </summary>
+    protected int GetCurrentUserId()
+    {
+        var userId = SessionHelper.GetUserId(HttpContext.Session);
+        if (!userId.HasValue)
+            throw new UnauthorizedAccessException("Usuario no autenticado");
+        return userId.Value;
+    }
+
+    /// <summary>
     /// Obtiene el email del usuario autenticado actual
     /// </summary>
     protected string? CurrentUserEmail => SessionHelper.GetUserEmail(HttpContext.Session);

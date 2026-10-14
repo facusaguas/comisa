@@ -1,0 +1,202 @@
+@model GestorNomina.Web.Models.Entities.Recibo
+
+@{
+    ViewData["Title"] = $"Recibo - {Model.Empleado.Legajo}";
+    var conceptosRemunerativos = Model.Detalles.Where(d => d.Concepto.Tipo == "REMUNERATIVO").ToList();
+    var conceptosNoRemunerativos = Model.Detalles.Where(d => d.Concepto.Tipo == "NO_REMUNERATIVO").ToList();
+    var deducciones = Model.Detalles.Where(d => d.Concepto.Tipo == "DEDUCCION").ToList();
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">
+                    Recibo de Sueldo
+                </h2>
+                <div class="text-muted mt-1">
+                    @Model.Empleado.Legajo - @Model.Empleado.Apellido, @Model.Empleado.Nombre
+                </div>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a asp-action="Recibos" class="btn">Volver</a>
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" /><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" /><rect x="7" y="13" width="10" height="8" rx="2" /></svg>
+                        Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card card-lg">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p class="h3">COMISA S.A.</p>
+                        <address>
+                            Constructora<br>
+                            CUIT: 00-00000000-0
+                        </address>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="h3">Recibo de Sueldo</p>
+                        <p class="text-muted">
+                            Periodo: <strong>@Model.Periodo</strong><br>
+                            Quincena: <strong>@(Model.Quincena == 1 ? "Primera" : "Segunda")</strong><br>
+                            Fecha: <strong>@Model.FechaCalculo.ToString("dd/MM/yyyy")</strong>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row my-4">
+                    <div class="col-12">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Empleado:</strong> @Model.Empleado.Apellido, @Model.Empleado.Nombre<br>
+                                        <strong>Legajo:</strong> @Model.Empleado.Legajo<br>
+                                        <strong>CUIL:</strong> @Model.Empleado.Cuil
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Categoría:</strong> @Model.Empleado.Categoria?.Nombre<br>
+                                        <strong>Convenio:</strong> @Model.Empleado.Convenio?.Nombre<br>
+                                        <strong>Días Trabajados:</strong> @Model.DiasTrabajados.ToString("N2")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Haberes Remunerativos -->
+                <div class="table-responsive">
+                    <h4>Haberes Remunerativos</h4>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Concepto</th>
+                                <th class="text-center">Unidades</th>
+                                <th class="text-end">Valor Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in conceptosRemunerativos)
+                            {
+                                <tr>
+                                    <td>@detalle.Concepto.CodigoTango</td>
+                                    <td>@detalle.Concepto.Nombre</td>
+                                    <td class="text-center">@detalle.Unidades.ToString("N2")</td>
+                                    <td class="text-end">@(detalle.ValorUnitario.HasValue ? detalle.ValorUnitario.Value.ToString("N2") : "-")</td>
+                                    <td class="text-end"><strong>$@detalle.Subtotal.ToString("N2")</strong></td>
+                                </tr>
+                            }
+                            <tr class="table-active">
+                                <td colspan="4" class="text-end"><strong>Subtotal Remunerativo:</strong></td>
+                                <td class="text-end"><strong>$@conceptosRemunerativos.Sum(d => d.Subtotal).ToString("N2")</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (conceptosNoRemunerativos.Any())
+                {
+                    <!-- Haberes No Remunerativos -->
+                    <div class="table-responsive mt-4">
+                        <h4>Haberes No Remunerativos</h4>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Concepto</th>
+                                    <th class="text-center">Unidades</th>
+                                    <th class="text-end">Valor Unit.</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var detalle in conceptosNoRemunerativos)
+                                {
+                                    <tr>
+                                        <td>@detalle.Concepto.CodigoTango</td>
+                                        <td>@detalle.Concepto.Nombre</td>
+                                        <td class="text-center">@detalle.Unidades.ToString("N2")</td>
+                                        <td class="text-end">@(detalle.ValorUnitario.HasValue ? detalle.ValorUnitario.Value.ToString("N2") : "-")</td>
+                                        <td class="text-end"><strong>$@detalle.Subtotal.ToString("N2")</strong></td>
+                                    </tr>
+                                }
+                                <tr class="table-active">
+                                    <td colspan="4" class="text-end"><strong>Subtotal No Remunerativo:</strong></td>
+                                    <td class="text-end"><strong>$@conceptosNoRemunerativos.Sum(d => d.Subtotal).ToString("N2")</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <!-- Deducciones -->
+                <div class="table-responsive mt-4">
+                    <h4>Deducciones</h4>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Concepto</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in deducciones)
+                            {
+                                <tr>
+                                    <td>@detalle.Concepto.CodigoTango</td>
+                                    <td>@detalle.Concepto.Nombre</td>
+                                    <td class="text-end text-danger"><strong>$@detalle.Subtotal.ToString("N2")</strong></td>
+                                </tr>
+                            }
+                            <tr class="table-active">
+                                <td colspan="2" class="text-end"><strong>Total Deducciones:</strong></td>
+                                <td class="text-end text-danger"><strong>$@Model.TotalDeducciones.ToString("N2")</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totales Finales -->
+                <div class="row mt-4">
+                    <div class="col-lg-8 ms-auto">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Total Bruto:</th>
+                                <td class="text-end h4">$@Model.TotalBruto.ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <th>Total Deducciones:</th>
+                                <td class="text-end h4 text-danger">$@Model.TotalDeducciones.ToString("N2")</td>
+                            </tr>
+                            <tr class="table-success">
+                                <th class="h3">NETO A COBRAR:</th>
+                                <td class="text-end h2">$@Model.TotalNeto.ToString("N2")</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                @if (Model.NetoConvenidoObjetivo.HasValue)
+                {
+                    <div class="alert alert-info mt-4">
+                        <strong>Neto Convenido:</strong> $@Model.NetoConvenidoObjetivo.Value.ToString("N2")<br>
+                        <strong>Diferencia de Control:</strong> $@Model.DiferenciaControl.Value.ToString("N2")
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
