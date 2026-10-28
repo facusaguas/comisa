@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestorNomina.Web.Models.Entities;
 
@@ -25,6 +26,10 @@ public class Categoria
 
     [Column("convenio_id")]
     public int? ConvenioId { get; set; }
+
+    [Column("salario_basico")]
+    [Precision(12, 2)]
+    public decimal? SalarioBasico { get; set; }
 
     // Navigation Properties
     [ForeignKey("ConvenioId")]

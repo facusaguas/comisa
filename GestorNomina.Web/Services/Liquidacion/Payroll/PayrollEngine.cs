@@ -53,9 +53,38 @@ public class PayrollEngine : IPayrollEngine
         if (!empleado.Activo)
             throw new InvalidOperationException($"El empleado {empleado.Legajo} está inactivo");
 
-        // Validar que el empleado tenga configuración de liquidación
-        if (!empleado.ValorHoraBasico.HasValue || empleado.ValorHoraBasico <= 0)
-            throw new InvalidOperationException($"El empleado {empleado.Legajo} no tiene configurado el valor hora básico");
+        // Validar que el empleado tenga configuración de liquidación según su tipo
+        if (empleado.TipoLiquidacion != null)
+        {
+            if (empleado.TipoLiquidacion.Codigo == "DIRECTOS" || 
+                empleado.TipoLiquidacion.Codigo == "DIRECTOS_CONVERSION_ACUERDO")
+            {
+                // Para DIRECTOS: requiere categoría con salario básico
+                if (empleado.Categoria?.SalarioBasico == null || empleado.Categoria.SalarioBasico <= 0)
+                {
+                    throw new InvalidOperationException(
+                        $"El empleado {empleado.Legajo} es DIRECTO pero su categoría no tiene configurado el salario básico");
+                }
+            }
+            else if (empleado.TipoLiquidacion.Codigo == "INDIRECTO")
+            {
+                // Para INDIRECTOS: requiere valor hora básico
+                if (!empleado.ValorHoraBasico.HasValue || empleado.ValorHoraBasico <= 0)
+                {
+                    throw new InvalidOperationException(
+                        $"El empleado {empleado.Legajo} es INDIRECTO pero no tiene configurado el valor hora básico");
+                }
+            }
+        }
+        else
+        {
+            // Sin tipo de liquidación: validar que al menos tenga valor hora básico
+            if (!empleado.ValorHoraBasico.HasValue || empleado.ValorHoraBasico <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"El empleado {empleado.Legajo} no tiene configurado el valor hora básico ni tipo de liquidación");
+            }
+        }
 
         // Cargar registros aprobados del periodo
         var registros = await _context.HorasRegistrosAprobados

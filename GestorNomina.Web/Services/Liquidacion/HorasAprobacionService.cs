@@ -71,8 +71,7 @@ public class HorasAprobacionService : IHorasAprobacionService
         }
 
         _context.HorasRegistrosAprobados.AddRange(registrosAprobados);
-        await _context.SaveChangesAsync();
-
+        
         // Actualizar estado del periodo
         var periodo = await _context.PeriodosCarga.FindAsync(periodoCargaId);
         if (periodo != null)
@@ -80,7 +79,7 @@ public class HorasAprobacionService : IHorasAprobacionService
             periodo.Estado = "Aprobado";
             periodo.UpdatedAt = DateTime.UtcNow;
         }
-
+        await _context.SaveChangesAsync();
         return registrosAprobados.Count;
     }
 

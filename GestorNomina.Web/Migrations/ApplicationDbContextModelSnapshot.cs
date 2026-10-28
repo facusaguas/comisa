@@ -88,6 +88,11 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("nombre");
 
+                    b.Property<decimal?>("SalarioBasico")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("salario_basico");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Codigo")

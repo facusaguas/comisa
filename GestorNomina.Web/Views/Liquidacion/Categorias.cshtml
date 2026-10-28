@@ -31,6 +31,7 @@
                             <th>Código</th>
                             <th>Nombre</th>
                             <th>Convenio</th>
+                            <th class="text-end">Salario Básico</th>
                             <th class="w-1">Acciones</th>
                         </tr>
                     </thead>
@@ -38,7 +39,7 @@
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="4" class="text-center text-muted">No hay categorías registradas</td>
+                                <td colspan="5" class="text-center text-muted">No hay categorías registradas</td>
                             </tr>
                         }
                         else
@@ -52,6 +53,16 @@
                                         @if (categoria.Convenio != null)
                                         {
                                             <span class="badge bg-blue-lt">@categoria.Convenio.Nombre</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        @if (categoria.SalarioBasico.HasValue)
+                                        {
+                                            <strong class="text-success">$ @categoria.SalarioBasico.Value.ToString("N2")</strong>
                                         }
                                         else
                                         {

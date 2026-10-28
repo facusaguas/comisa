@@ -11,7 +11,43 @@ public class StepConceptosRemunerativos : IPayrollStep
 
     public Task ExecuteAsync(PayrollContext context)
     {
-        var valorHora = context.Empleado.ValorHoraBasico ?? 0;
+        // Determinar el valor hora según el tipo de liquidación
+        decimal valorHora;
+        
+        if (context.Empleado.TipoLiquidacion?.Codigo == "DIRECTOS" || 
+            context.Empleado.TipoLiquidacion?.Codigo == "DIRECTOS_CONVERSION_ACUERDO")
+        {
+            // Para empleados DIRECTOS: tomar el salario básico de la categoría
+            if (context.Empleado.Categoria?.SalarioBasico == null || context.Empleado.Categoria.SalarioBasico <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"El empleado {context.Empleado.Legajo} es DIRECTO pero su categoría no tiene configurado el salario básico");
+            }
+            
+            valorHora = context.Empleado.Categoria.SalarioBasico.Value;
+        }
+        else if (context.Empleado.TipoLiquidacion?.Codigo == "INDIRECTO")
+        {
+            // Para empleados INDIRECTOS: tomar el valor hora básico del empleado
+            if (context.Empleado.ValorHoraBasico == null || context.Empleado.ValorHoraBasico <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"El empleado {context.Empleado.Legajo} es INDIRECTO pero no tiene configurado el valor hora básico");
+            }
+            
+            valorHora = context.Empleado.ValorHoraBasico.Value;
+        }
+        else
+        {
+            // Si no tiene tipo de liquidación definido, intentar usar el valor hora del empleado por compatibilidad
+            if (context.Empleado.ValorHoraBasico == null || context.Empleado.ValorHoraBasico <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"El empleado {context.Empleado.Legajo} no tiene configurado el valor hora básico ni tipo de liquidación");
+            }
+            
+            valorHora = context.Empleado.ValorHoraBasico.Value;
+        }
 
         // 1. Sueldo Básico (1001): HSNOR * ValorHora
         var sueldoBasico = context.HSNOR * valorHora;

@@ -1,8 +1,10 @@
+using GestorNomina.Web.Data;
 using GestorNomina.Web.Filters;
 using GestorNomina.Web.Models.ViewModels;
 using GestorNomina.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestorNomina.Web.Controllers;
 
@@ -13,30 +15,100 @@ public class EmpleadosController : BaseController
     private readonly IEmpleadoService _empleadoService;
     private readonly IRegimenLaboralService _regimenService;
     private readonly IProyectoService _proyectoService;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<EmpleadosController> _logger;
 
     public EmpleadosController(
         IEmpleadoService empleadoService,
         IRegimenLaboralService regimenService,
         IProyectoService proyectoService,
+        ApplicationDbContext context,
         ILogger<EmpleadosController> logger)
     {
         _empleadoService = empleadoService;
         _regimenService = regimenService;
         _proyectoService = proyectoService;
+        _context = context;
         _logger = logger;
     }
 
     // GET: Empleados
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? nombre, string? apellido, string? cuil, int? proyectoId, bool? activo, int page = 1)
     {
         try
         {
             ViewData["PageTitle"] = "Empleados";
             ViewData["PagePretitle"] = "CONFIGURACIÓN";
 
-            var empleados = await _empleadoService.GetAllAsync();
-            return View(empleados);
+            const int pageSize = 10;
+
+            // Obtener todos los empleados y aplicar filtros
+            var todosEmpleados = await _empleadoService.GetAllAsync();
+            
+            // Aplicar filtros
+            var empleadosFiltrados = todosEmpleados.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(nombre))
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Nombre.Contains(nombre, StringComparison.OrdinalIgnoreCase));
+                ViewBag.FiltroNombre = nombre;
+            }
+
+            if (!string.IsNullOrWhiteSpace(apellido))
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Apellido.Contains(apellido, StringComparison.OrdinalIgnoreCase));
+                ViewBag.FiltroApellido = apellido;
+            }
+
+            if (!string.IsNullOrWhiteSpace(cuil))
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Cuil != null && e.Cuil.Contains(cuil));
+                ViewBag.FiltroCuil = cuil;
+            }
+
+            if (proyectoId.HasValue && proyectoId.Value > 0)
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.ProyectoId == proyectoId.Value);
+                ViewBag.FiltroProyectoId = proyectoId.Value;
+            }
+
+            if (activo.HasValue)
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Activo == activo.Value);
+                ViewBag.FiltroActivo = activo.Value;
+            }
+
+            var listaFiltrada = empleadosFiltrados.ToList();
+
+            // Calcular paginación
+            var totalEmpleados = listaFiltrada.Count;
+            var totalPages = (int)Math.Ceiling(totalEmpleados / (double)pageSize);
+            
+            // Validar página
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var empleadosPaginados = listaFiltrada
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Pasar datos de paginación a la vista
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalEmpleados = totalEmpleados;
+            ViewBag.PageSize = pageSize;
+
+            // Cargar proyectos para el filtro
+            var proyectos = await _proyectoService.GetAllAsync();
+            ViewBag.Proyectos = proyectos.Where(p => p.Activo).ToList();
+
+            return View(empleadosPaginados);
         }
         catch (Exception ex)
         {
@@ -299,12 +371,61 @@ public class EmpleadosController : BaseController
             var proyectos = await _proyectoService.GetAllAsync();
             var proyectosActivos = proyectos.Where(p => p.Activo).ToList();
             ViewBag.Proyectos = new SelectList(proyectosActivos, "Id", "Nombre");
+
+            // Cargar convenios
+            var convenios = await _context.Convenios
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+            ViewBag.Convenios = new SelectList(convenios, "Id", "Nombre");
+
+            // Cargar tipos de liquidación
+            var tiposLiquidacion = await _context.TiposLiquidacion
+                .OrderBy(t => t.Nombre)
+                .ToListAsync();
+            ViewBag.TiposLiquidacion = new SelectList(tiposLiquidacion, "Id", "Nombre");
+
+            // Cargar categorías (todas, filtraremos por convenio en el cliente)
+            var categorias = await _context.Categorias
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+            ViewBag.Categorias = new SelectList(categorias, "Id", "Nombre");
+
+            // Cargar disciplinas
+            var disciplinas = await _context.Disciplinas
+                .OrderBy(d => d.Nombre)
+                .ToListAsync();
+            ViewBag.Disciplinas = new SelectList(disciplinas, "Id", "Nombre");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al cargar listas de selección");
             ViewBag.Regimenes = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Proyectos = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Convenios = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.TiposLiquidacion = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Categorias = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Disciplinas = new SelectList(Enumerable.Empty<SelectListItem>());
+        }
+    }
+
+    // API: Obtener categorías por convenio
+    [HttpGet]
+    public async Task<IActionResult> GetCategoriasByConvenio(int convenioId)
+    {
+        try
+        {
+            var categorias = await _context.Categorias
+                .Where(c => c.ConvenioId == convenioId)
+                .OrderBy(c => c.Nombre)
+                .Select(c => new { id = c.Id, nombre = c.Nombre })
+                .ToListAsync();
+
+            return Json(categorias);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener categorías por convenio {ConvenioId}", convenioId);
+            return Json(new List<object>());
         }
     }
 }

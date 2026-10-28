@@ -1,6 +1,7 @@
 using GestorNomina.Web.Data;
 using GestorNomina.Web.Filters;
 using GestorNomina.Web.Models.Entities;
+using GestorNomina.Web.Models.ViewModels;
 using GestorNomina.Web.Services.Liquidacion;
 using GestorNomina.Web.Services.Liquidacion.Payroll;
 using Microsoft.AspNetCore.Mvc;
@@ -88,15 +89,105 @@ public class LiquidacionController : BaseController
     // PASO 2: PERIODOS DE CARGA
     // ==========================================
 
-    public async Task<IActionResult> PeriodosCarga()
+    public async Task<IActionResult> PeriodosCarga(int? proyectoId, string? periodo, int? quincena, string? estado)
     {
-        var periodos = await _context.PeriodosCarga
+        var query = _context.PeriodosCarga
             .Include(p => p.Proyecto)
             .Include(p => p.UsuarioCarga)
-            .OrderByDescending(p => p.CreatedAt)
+            .AsQueryable();
+
+        // Aplicar filtros
+        if (proyectoId.HasValue && proyectoId.Value > 0)
+        {
+            query = query.Where(p => p.ProyectoId == proyectoId.Value);
+            ViewBag.FiltroProyectoId = proyectoId.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(periodo))
+        {
+            // Formato esperado: YYYY-MM
+            var partes = periodo.Split('-');
+            if (partes.Length == 2 && int.TryParse(partes[0], out int anio) && int.TryParse(partes[1], out int mes))
+            {
+                query = query.Where(p => p.Anio == anio && p.Mes == mes);
+                ViewBag.FiltroPeriodo = periodo;
+            }
+        }
+
+        if (quincena.HasValue && (quincena.Value == 1 || quincena.Value == 2))
+        {
+            query = query.Where(p => p.Quincena == quincena.Value);
+            ViewBag.FiltroQuincena = quincena.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(estado))
+        {
+            query = query.Where(p => p.Estado == estado);
+            ViewBag.FiltroEstado = estado;
+        }
+
+        var periodos = await query
+            .OrderByDescending(p => p.Anio)
+            .ThenByDescending(p => p.Mes)
+            .ThenByDescending(p => p.Quincena)
+            .ThenByDescending(p => p.CreatedAt)
             .ToListAsync();
 
+        // Cargar proyectos para el filtro
+        var proyectos = await _context.Proyectos
+            .Where(p => p.Activo)
+            .OrderBy(p => p.Nombre)
+            .ToListAsync();
+        ViewBag.Proyectos = proyectos;
+
         return View(periodos);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EliminarPeriodo(int id)
+    {
+        try
+        {
+            var periodo = await _context.PeriodosCarga
+                .Include(p => p.Proyecto)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (periodo == null)
+            {
+                TempData["ErrorMessage"] = "Periodo no encontrado";
+                return RedirectToAction(nameof(PeriodosCarga));
+            }
+
+            // Solo permitir eliminar si está en estado "Cargado" (pendiente de aprobación)
+            if (periodo.Estado != "Cargado")
+            {
+                TempData["ErrorMessage"] = $"No se puede eliminar el periodo. Estado actual: {periodo.Estado}. Solo se pueden eliminar periodos en estado 'Pendiente Aprobación'.";
+                return RedirectToAction(nameof(PeriodosCarga));
+            }
+
+            // Eliminar registros raw asociados
+            var registrosRaw = await _context.HorasRegistrosRaw
+                .Where(r => r.PeriodoCargaId == id)
+                .ToListAsync();
+
+            if (registrosRaw.Any())
+            {
+                _context.HorasRegistrosRaw.RemoveRange(registrosRaw);
+            }
+
+            // Eliminar el periodo
+            _context.PeriodosCarga.Remove(periodo);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Periodo {periodo.Anio}-{periodo.Mes:00} Quincena {periodo.Quincena} del proyecto {periodo.Proyecto.Nombre} eliminado correctamente. Se eliminaron {registrosRaw.Count} registros asociados.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar el periodo: {ex.Message}";
+        }
+
+        return RedirectToAction(nameof(PeriodosCarga));
     }
 
     // ==========================================
@@ -117,8 +208,44 @@ public class LiquidacionController : BaseController
 
         var registros = await _aprobacionService.ObtenerRegistrosPendientesAsync(periodoCargaId);
 
-        ViewBag.Periodo = periodo;
-        return View(registros);
+        // Calcular días de la quincena
+        var quincena = periodo.Quincena ?? 1;
+        var diasDelMes = DateTime.DaysInMonth(periodo.Anio, periodo.Mes);
+        var diasQuincena = quincena == 1 
+            ? Enumerable.Range(1, 15).ToList() 
+            : Enumerable.Range(16, diasDelMes - 15).ToList();
+
+        // Agrupar registros por empleado
+        var empleadosAgrupados = registros
+            .GroupBy(r => new { r.EmpleadoLegajo, r.Empleado?.Apellido, r.Empleado?.Nombre })
+            .Select(g => new Models.ViewModels.EmpleadoParteDiarioViewModel
+            {
+                Legajo = g.Key.EmpleadoLegajo,
+                Apellido = g.Key.Apellido ?? "Sin Apellido",
+                Nombre = g.Key.Nombre ?? "Sin Nombre",
+                HorasPorDia = g.ToDictionary(
+                    r => r.Fecha.Day,
+                    r => r.HorasCargadas
+                ),
+                TieneRegistrosPendientes = true
+            })
+            .OrderBy(e => e.Apellido)
+            .ThenBy(e => e.Nombre)
+            .ToList();
+
+        var viewModel = new Models.ViewModels.RegistrosPendientesViewModel
+        {
+            PeriodoCargaId = periodoCargaId,
+            ProyectoNombre = periodo.Proyecto.Nombre,
+            Anio = periodo.Anio,
+            Mes = periodo.Mes,
+            Quincena = quincena,
+            DiasQuincena = diasQuincena,
+            Empleados = empleadosAgrupados,
+            TotalRegistros = registros.Count
+        };
+
+        return View(viewModel);
     }
 
     [HttpPost]
@@ -138,6 +265,41 @@ public class LiquidacionController : BaseController
             TempData["ErrorMessage"] = $"Error al aprobar: {ex.Message}";
             return RedirectToAction(nameof(RegistrosPendientes), new { periodoCargaId });
         }
+    }
+
+    // GET: Liquidacion/EditarHorasEmpleado
+    public async Task<IActionResult> EditarHorasEmpleado(int periodoCargaId, string legajo)
+    {
+        var periodo = await _context.PeriodosCarga
+            .Include(p => p.Proyecto)
+            .FirstOrDefaultAsync(p => p.Id == periodoCargaId);
+
+        if (periodo == null)
+        {
+            TempData["ErrorMessage"] = "Periodo no encontrado";
+            return RedirectToAction(nameof(PeriodosCarga));
+        }
+
+        var registros = await _context.HorasRegistrosRaw
+            .Include(r => r.Empleado)
+            .Include(r => r.Actividad)
+            .Where(r => r.PeriodoCargaId == periodoCargaId && r.EmpleadoLegajo == legajo)
+            .OrderBy(r => r.Fecha)
+            .ToListAsync();
+
+        if (!registros.Any())
+        {
+            TempData["ErrorMessage"] = "No se encontraron registros para este empleado";
+            return RedirectToAction(nameof(RegistrosPendientes), new { periodoCargaId });
+        }
+
+        ViewBag.Periodo = periodo;
+        ViewBag.EmpleadoLegajo = legajo;
+        ViewBag.EmpleadoNombre = registros.First().Empleado != null 
+            ? $"{registros.First().Empleado.Apellido}, {registros.First().Empleado.Nombre}"
+            : "Sin nombre";
+
+        return View(registros);
     }
 
     [HttpPost]
@@ -183,8 +345,60 @@ public class LiquidacionController : BaseController
             .ThenBy(r => r.Empleado.Legajo)
             .ToListAsync();
 
+        if (!registros.Any())
+        {
+            ViewBag.Periodo = periodo;
+            return View(new RegistrosPendientesViewModel
+            {
+                PeriodoCargaId = periodoCargaId,
+                Periodo = $"{periodo.Anio}-{periodo.Mes:00}",
+                Quincena = periodo.Quincena ?? 1,
+                DiasQuincena = new List<int>(),
+                Empleados = new List<EmpleadoParteDiarioViewModel>(),
+                TotalRegistros = 0
+            });
+        }
+
+        // Agrupar registros por empleado
+        var empleadosAgrupados = registros
+            .GroupBy(r => new { r.EmpleadoId, r.Empleado.Legajo, r.Empleado.Apellido, r.Empleado.Nombre })
+            .Select(g => new EmpleadoParteDiarioViewModel
+            {
+                EmpleadoId = g.Key.EmpleadoId,
+                Legajo = g.Key.Legajo,
+                Apellido = g.Key.Apellido,
+                Nombre = g.Key.Nombre,
+                HorasPorDia = g.ToDictionary(
+                    r => r.Fecha.Day,
+                    r => r.HorasFinales
+                )
+            })
+            .OrderBy(e => e.Apellido)
+            .ThenBy(e => e.Nombre)
+            .ToList();
+
+        // Calcular días de la quincena
+        var quincena = periodo.Quincena ?? 1;
+        var anio = periodo.Anio;
+        var mes = periodo.Mes;
+        var diasDelMes = DateTime.DaysInMonth(anio, mes);
+        
+        var diasQuincena = quincena == 1
+            ? Enumerable.Range(1, 15).ToList()
+            : Enumerable.Range(16, diasDelMes - 15).ToList();
+
+        var viewModel = new RegistrosPendientesViewModel
+        {
+            PeriodoCargaId = periodoCargaId,
+            Periodo = $"{anio}-{mes:00}",
+            Quincena = quincena,
+            DiasQuincena = diasQuincena,
+            Empleados = empleadosAgrupados,
+            TotalRegistros = registros.Count
+        };
+
         ViewBag.Periodo = periodo;
-        return View(registros);
+        return View(viewModel);
     }
 
     // ==========================================

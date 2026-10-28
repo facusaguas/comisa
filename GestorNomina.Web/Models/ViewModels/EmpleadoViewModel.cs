@@ -28,6 +28,10 @@ public class EmpleadoViewModel
     [Display(Name = "Documento de Identidad")]
     public string? DocumentoIdentidad { get; set; }
 
+    [StringLength(13, ErrorMessage = "El CUIL debe tener 11 dígitos")]
+    [Display(Name = "CUIL")]
+    public string? Cuil { get; set; }
+
     [StringLength(100, ErrorMessage = "El cargo no puede exceder los 100 caracteres")]
     [Display(Name = "Cargo")]
     public string? Cargo { get; set; }
@@ -35,22 +39,67 @@ public class EmpleadoViewModel
     [Display(Name = "Régimen Laboral")]
     public int? RegimenId { get; set; }
 
+    [Display(Name = "Proyecto Actual")]
+    public int? ProyectoId { get; set; }
+
     [DataType(DataType.Date)]
     [Display(Name = "Fecha de Ingreso")]
     public DateTime? FechaIngreso { get; set; }
 
+    [DataType(DataType.Date)]
+    [Display(Name = "Fecha de Alta")]
+    public DateTime? FechaAlta { get; set; }
+
     [Display(Name = "Activo")]
     public bool Activo { get; set; } = true;
 
-    // Propiedades de visualización
+    // ==========================================
+    // CAMPOS DE LIQUIDACIÓN
+    // ==========================================
+
+    [Display(Name = "Convenio")]
+    public int? ConvenioId { get; set; }
+
+    [Display(Name = "Tipo de Liquidación")]
+    public int? TipoLiquidacionId { get; set; }
+
+    [Display(Name = "Categoría")]
+    public int? CategoriaId { get; set; }
+
+    [Display(Name = "Disciplina")]
+    public int? DisciplinaId { get; set; }
+
+    [Display(Name = "Valor Hora Básico")]
+    [DataType(DataType.Currency)]
+    public decimal? ValorHoraBasico { get; set; }
+
+    [Display(Name = "Valor Convenido Diario")]
+    [DataType(DataType.Currency)]
+    public decimal? ValorConvenidoDiario { get; set; }
+
+    [Display(Name = "Aplica Plus Altura")]
+    public bool AplicaPlusAltura { get; set; } = false;
+
+    [Display(Name = "Aplica Plus Fénix")]
+    public bool AplicaPlusFenix { get; set; } = false;
+
+    // ==========================================
+    // PROPIEDADES DE VISUALIZACIÓN
+    // ==========================================
+
     [Display(Name = "Nombre Completo")]
     public string NombreCompleto => $"{Apellido}, {Nombre}";
 
     [Display(Name = "Estado")]
     public string EstadoTexto => Activo ? "Activo" : "Inactivo";
 
-    // Régimen laboral (para visualización)
+    // Nombres para visualización
     public string? RegimenNombre { get; set; }
+    public string? ProyectoNombre { get; set; }
+    public string? ConvenioNombre { get; set; }
+    public string? TipoLiquidacionNombre { get; set; }
+    public string? CategoriaNombre { get; set; }
+    public string? DisciplinaNombre { get; set; }
 
     // Proyectos asignados (para visualización)
     public List<string> ProyectosAsignados { get; set; } = new();

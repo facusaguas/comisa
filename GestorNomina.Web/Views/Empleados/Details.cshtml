@@ -29,8 +29,10 @@
 <div class="page-body">
     <div class="container-xl">
         <div class="row row-cards">
+            <!-- Columna principal -->
             <div class="col-lg-8">
-                <div class="card">
+                <!-- Información Personal -->
+                <div class="card mb-3">
                     <div class="card-header">
                         <h3 class="card-title">Información Personal</h3>
                     </div>
@@ -49,18 +51,48 @@
                                 <div class="datagrid-content">@(Model.DocumentoIdentidad ?? "-")</div>
                             </div>
                             <div class="datagrid-item">
+                                <div class="datagrid-title">CUIL</div>
+                                <div class="datagrid-content">@(Model.Cuil ?? "-")</div>
+                            </div>
+                            <div class="datagrid-item">
                                 <div class="datagrid-title">Cargo</div>
                                 <div class="datagrid-content">@(Model.Cargo ?? "-")</div>
                             </div>
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Fecha de Ingreso</div>
-                                <div class="datagrid-content">@Model.FechaIngreso.ToString()</div>
+                                <div class="datagrid-content">
+                                    @if (Model.FechaIngreso.HasValue)
+                                    {
+                                        @Model.FechaIngreso.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Fecha de Alta</div>
+                                <div class="datagrid-content">
+                                    @if (Model.FechaAlta.HasValue)
+                                    {
+                                        @Model.FechaAlta.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
                             </div>
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Régimen Laboral</div>
                                 <div class="datagrid-content">
-                                    <span class="badge bg-blue-lt">@Model.RegimenNombre</span>
+                                    <span class="badge bg-blue-lt">@(Model.RegimenNombre ?? "-")</span>
                                 </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Proyecto Actual</div>
+                                <div class="datagrid-content">@(Model.ProyectoNombre ?? "Sin asignar")</div>
                             </div>
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Estado</div>
@@ -75,6 +107,132 @@
                                     }
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos de Liquidación -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="card-title">Datos de Liquidación</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="datagrid">
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Tipo de Liquidación</div>
+                                <div class="datagrid-content">
+                                    @if (Model.TipoLiquidacionId.HasValue)
+                                    {
+                                        <span class="badge bg-cyan-lt">Configurado</span>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Convenio</div>
+                                <div class="datagrid-content">
+                                    @if (Model.ConvenioId.HasValue)
+                                    {
+                                        <span class="badge bg-purple-lt">Asignado</span>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Categoría</div>
+                                <div class="datagrid-content">
+                                    @if (Model.CategoriaId.HasValue)
+                                    {
+                                        <span class="badge bg-purple-lt">Asignada</span>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Disciplina</div>
+                                <div class="datagrid-content">
+                                    @if (Model.DisciplinaId.HasValue)
+                                    {
+                                        <span class="badge bg-teal-lt">Asignada</span>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Valor Hora Básico</div>
+                                <div class="datagrid-content">
+                                    @if (Model.ValorHoraBasico.HasValue)
+                                    {
+                                        <strong>@Model.ValorHoraBasico.Value.ToString("C2")</strong>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Valor Convenido Diario</div>
+                                <div class="datagrid-content">
+                                    @if (Model.ValorConvenidoDiario.HasValue)
+                                    {
+                                        <strong>@Model.ValorConvenidoDiario.Value.ToString("C2")</strong>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Plus por Altura</div>
+                                <div class="datagrid-content">
+                                    @if (Model.AplicaPlusAltura)
+                                    {
+                                        <span class="badge bg-green">Sí</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">No</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Plus Fénix</div>
+                                <div class="datagrid-content">
+                                    @if (Model.AplicaPlusFenix)
+                                    {
+                                        <span class="badge bg-green">Sí</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">No</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auditoría -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Información del Sistema</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="datagrid">
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Fecha de Registro</div>
                                 <div class="datagrid-content">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
@@ -87,6 +245,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Columna lateral -->
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-header">

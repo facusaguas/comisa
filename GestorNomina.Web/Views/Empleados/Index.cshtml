@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Gestión de Empleados";
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var totalEmpleados = ViewBag.TotalEmpleados ?? 0;
+    var pageSize = ViewBag.PageSize ?? 10;
 }
 
 <div class="page-header d-print-none">
@@ -18,7 +22,7 @@
                     </svg>
                     Empleados
                 </h2>
-                <div class="text-muted mt-1">@Model.Count empleados encontrados</div>
+                <div class="text-muted mt-1">@totalEmpleados empleados encontrados</div>
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list">
@@ -38,7 +42,69 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
+                        <h3 class="card-title">Filtros de Búsqueda</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" asp-action="Index" id="filtrosForm">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" name="nombre" value="@ViewBag.FiltroNombre" placeholder="Buscar por nombre">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Apellido</label>
+                                    <input type="text" class="form-control" name="apellido" value="@ViewBag.FiltroApellido" placeholder="Buscar por apellido">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">CUIL</label>
+                                    <input type="text" class="form-control" name="cuil" value="@ViewBag.FiltroCuil" placeholder="Buscar por CUIL">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Proyecto Actual</label>
+                                    <select class="form-select" name="proyectoId">
+                                        <option value="">Todos</option>
+                                        @if (ViewBag.Proyectos != null)
+                                        {
+                                            @foreach (var proyecto in ViewBag.Proyectos)
+                                            {
+                                                <option value="@proyecto.Id" selected="@(ViewBag.FiltroProyectoId == proyecto.Id)">@proyecto.Nombre</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Estado</label>
+                                    <select class="form-select" name="activo">
+                                        <option value="">Todos</option>
+                                        <option value="true" selected="@(ViewBag.FiltroActivo == true)">Activos</option>
+                                        <option value="false" selected="@(ViewBag.FiltroActivo == false)">Inactivos</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="10" cy="10" r="7" /><line x1="21" y1="21" x2="15" y2="15" /></svg>
+                                        Buscar
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                                        Limpiar Filtros
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
                         <h3 class="card-title">Listado de Empleados</h3>
+                        <div class="ms-auto text-muted">
+                            Mostrando @((currentPage - 1) * pageSize + 1) - @Math.Min(currentPage * pageSize, totalEmpleados) de @totalEmpleados empleados
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-vcenter card-table table-striped">
@@ -46,11 +112,11 @@
                                 <tr>
                                     <th>Legajo</th>
                                     <th>Apellido y Nombre</th>
-                                    <th>Doc. Identidad</th>
+                                    <th>CUIL</th>
                                     <th>Cargo</th>
                                     <th>Régimen</th>
                                     <th>Fecha Ingreso</th>
-                                    <th>Proyectos</th>
+                                    <th>Proyecto Actual</th>
                                     <th>Estado</th>
                                     <th class="w-1">Acciones</th>
                                 </tr>
@@ -59,7 +125,17 @@
                                 @if (Model.Count == 0)
                                 {
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted">No hay empleados registrados</td>
+                                        <td colspan="9" class="text-center text-muted py-5">
+                                            <div class="empty">
+                                                <div class="empty-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="10" cy="10" r="7" /><line x1="21" y1="21" x2="15" y2="15" /></svg>
+                                                </div>
+                                                <p class="empty-title">No se encontraron empleados</p>
+                                                <p class="empty-subtitle text-muted">
+                                                    Intenta ajustar los filtros de búsqueda o crear un nuevo empleado
+                                                </p>
+                                            </div>
+                                        </td>
                                     </tr>
                                 }
                                 else
@@ -73,14 +149,25 @@
                                             <td>
                                                 @empleado.Apellido, @empleado.Nombre
                                             </td>
-                                            <td>@(empleado.DocumentoIdentidad ?? "-")</td>
+                                            <td>@(empleado.Cuil ?? "-")</td>
                                             <td>@(empleado.Cargo ?? "-")</td>
                                             <td>
-                                                <span class="badge bg-blue-lt">@empleado.RegimenNombre</span>
+                                                @if (!string.IsNullOrEmpty(empleado.RegimenNombre))
+                                                {
+                                                    <span class="badge bg-blue-lt">@empleado.RegimenNombre</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
                                             </td>
-                                            <td>@empleado.FechaIngreso.ToString()</td>
+                                            <td>@(empleado.FechaIngreso?.ToString("dd/MM/yyyy") ?? "-")</td>
                                             <td>
-                                                @if (empleado.ProyectosAsignados != null && empleado.ProyectosAsignados.Any())
+                                                @if (!string.IsNullOrEmpty(empleado.ProyectoNombre))
+                                                {
+                                                    <span class="badge bg-green-lt">@empleado.ProyectoNombre</span>
+                                                }
+                                                else if (empleado.ProyectosAsignados != null && empleado.ProyectosAsignados.Any())
                                                 {
                                                     <span class="badge bg-green">@empleado.ProyectosAsignados.Count proyectos</span>
                                                 }
@@ -118,6 +205,58 @@
                             </tbody>
                         </table>
                     </div>
+                    @if (totalPages > 1)
+                    {
+                        <div class="card-footer d-flex align-items-center">
+                            <p class="m-0 text-muted">
+                                Mostrando página @currentPage de @totalPages
+                            </p>
+                            <ul class="pagination m-0 ms-auto">
+                                @* Botón Primera Página *@
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { nombre = ViewBag.FiltroNombre, apellido = ViewBag.FiltroApellido, cuil = ViewBag.FiltroCuil, proyectoId = ViewBag.FiltroProyectoId, activo = ViewBag.FiltroActivo, page = 1 })" tabindex="-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="11 7 6 12 11 17" /><polyline points="17 7 12 12 17 17" /></svg>
+                                    </a>
+                                </li>
+
+                                @* Botón Anterior *@
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { nombre = ViewBag.FiltroNombre, apellido = ViewBag.FiltroApellido, cuil = ViewBag.FiltroCuil, proyectoId = ViewBag.FiltroProyectoId, activo = ViewBag.FiltroActivo, page = currentPage - 1 })">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>
+                                        Anterior
+                                    </a>
+                                </li>
+
+                                @* Páginas numeradas *@
+                                @{
+                                    var startPage = Math.Max(1, currentPage - 2);
+                                    var endPage = Math.Min(totalPages, currentPage + 2);
+
+                                    for (int i = startPage; i <= endPage; i++)
+                                    {
+                                        <li class="page-item @(i == currentPage ? "active" : "")">
+                                            <a class="page-link" href="@Url.Action("Index", new { nombre = ViewBag.FiltroNombre, apellido = ViewBag.FiltroApellido, cuil = ViewBag.FiltroCuil, proyectoId = ViewBag.FiltroProyectoId, activo = ViewBag.FiltroActivo, page = i })">@i</a>
+                                        </li>
+                                    }
+                                }
+
+                                @* Botón Siguiente *@
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { nombre = ViewBag.FiltroNombre, apellido = ViewBag.FiltroApellido, cuil = ViewBag.FiltroCuil, proyectoId = ViewBag.FiltroProyectoId, activo = ViewBag.FiltroActivo, page = currentPage + 1 })">
+                                        Siguiente
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>
+                                    </a>
+                                </li>
+
+                                @* Botón Última Página *@
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { nombre = ViewBag.FiltroNombre, apellido = ViewBag.FiltroApellido, cuil = ViewBag.FiltroCuil, proyectoId = ViewBag.FiltroProyectoId, activo = ViewBag.FiltroActivo, page = totalPages })">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="7 7 12 12 7 17" /><polyline points="13 7 18 12 13 17" /></svg>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

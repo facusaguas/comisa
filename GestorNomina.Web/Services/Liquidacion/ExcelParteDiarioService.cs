@@ -17,7 +17,7 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
 
     // Mapeo de columnas según formato real del Excel
     private const int FILA_TITULO_PERIODO = 1; // Fila con "2Q SEPTIEMBRE 2026"
-    private const int FILA_ENCABEZADO = 12; // Fila con headers (LEG, APELLIDO, NOMBRE, etc.) - Excel es 1-indexed
+    private const int FILA_ENCABEZADO = 3; // Fila con headers (LEG, APELLIDO, NOMBRE, etc.) - Excel es 1-indexed
     private const int COL_LEGAJO = 1; // A - LEG
     private const int COL_APELLIDO = 2; // B - APELLIDO
     private const int COL_NOMBRE = 3; // C - NOMBRE
@@ -148,6 +148,42 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
                 var cuil = worksheet.Cell(filaActual, COL_CUIL).GetString().Trim();
                 var categoriaStr = worksheet.Cell(filaActual, COL_CATEGORIA).GetString().Trim();
 
+                // Buscar o crear empleado y asignar proyecto
+                var empleado = await _context.Empleados
+                    .FirstOrDefaultAsync(e => e.Legajo == legajoStr);
+
+                if (empleado != null)
+                {
+                    // Actualizar el proyecto del empleado si es diferente
+                    if (empleado.ProyectoId != proyectoId)
+                    {
+                        empleado.ProyectoId = proyectoId;
+                        empleado.UpdatedAt = DateTime.UtcNow;
+                        _context.Empleados.Update(empleado);
+                    }
+
+                    // Verificar si ya existe la relación en EmpleadoProyecto
+                    var empleadoProyectoExiste = await _context.EmpleadosProyectos
+                        .AnyAsync(ep => ep.EmpleadoId == empleado.Id 
+                                     && ep.ProyectoId == proyectoId
+                                     && (ep.FechaHasta == null || ep.FechaHasta >= DateTime.UtcNow));
+
+                    if (!empleadoProyectoExiste)
+                    {
+                        // Crear la relación EmpleadoProyecto
+                        var empleadoProyecto = new EmpleadoProyecto
+                        {
+                            EmpleadoId = empleado.Id,
+                            ProyectoId = proyectoId,
+                            FechaDesde = DateTime.UtcNow,
+                            FechaHasta = null,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _context.EmpleadosProyectos.Add(empleadoProyecto);
+                    }
+                }
+
                 // Procesar cada día del mes
                 for (int diaIndex = 0; diaIndex < diasDisponibles.Count; diaIndex++)
                 {
@@ -184,7 +220,9 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
                     {
                         PeriodoCargaId = periodoCarga.Id,
                         EmpleadoLegajo = legajoStr,
+                        EmpleadoId = empleado.Id,
                         ActividadCodigo = "HN", // Por defecto Horas Normales (puede mejorarse)
+                        ActividadId = 1,
                         Fecha = fecha,
                         HorasCargadas = horas,
                         FilaExcelOrigen = filaActual,

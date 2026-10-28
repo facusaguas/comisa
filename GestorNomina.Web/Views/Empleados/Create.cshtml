@@ -25,24 +25,33 @@
         <div class="row row-cards">
             <div class="col-12">
                 <form asp-action="Create" method="post">
-                    <div class="card">
+                    
+                    <!-- Datos Personales -->
+                    <div class="card mb-3">
                         <div class="card-header">
-                            <h3 class="card-title">Datos del Empleado</h3>
+                            <h3 class="card-title">Datos Personales</h3>
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="Legajo" class="form-label required">Legajo</label>
                                         <input asp-for="Legajo" class="form-control" placeholder="Ej: 001234" />
                                         <span asp-validation-for="Legajo" class="text-danger"></span>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="DocumentoIdentidad" class="form-label">Documento de Identidad</label>
                                         <input asp-for="DocumentoIdentidad" class="form-control" placeholder="Ej: 12345678" />
                                         <span asp-validation-for="DocumentoIdentidad" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="Cuil" class="form-label">CUIL</label>
+                                        <input asp-for="Cuil" class="form-control" placeholder="Ej: 20-12345678-9" />
+                                        <span asp-validation-for="Cuil" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
@@ -63,18 +72,26 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="Cargo" class="form-label">Cargo</label>
                                         <input asp-for="Cargo" class="form-control" placeholder="Ej: Operador, Supervisor" />
                                         <span asp-validation-for="Cargo" class="text-danger"></span>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="FechaIngreso" class="form-label required">Fecha de Ingreso</label>
                                         <input asp-for="FechaIngreso" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                                         <span asp-validation-for="FechaIngreso" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="FechaAlta" class="form-label">Fecha de Alta</label>
+                                        <input asp-for="FechaAlta" type="date" class="form-control" />
+                                        <span asp-validation-for="FechaAlta" class="text-danger"></span>
+                                        <small class="form-hint">Fecha de alta en el sistema de liquidación</small>
                                     </div>
                                 </div>
                             </div>
@@ -97,6 +114,24 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
+                                        <label asp-for="ProyectoId" class="form-label">Proyecto Actual</label>
+                                        <select asp-for="ProyectoId" class="form-select">
+                                            <option value="">Sin asignar</option>
+                                            @if (ViewBag.Proyectos != null)
+                                            {
+                                                @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Proyectos)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="ProyectoId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
                                         <label class="form-label">Estado</label>
                                         <div class="form-check form-switch mt-2">
                                             <input asp-for="Activo" class="form-check-input" type="checkbox" checked />
@@ -106,6 +141,120 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Datos de Liquidación -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3 class="card-title">Datos de Liquidación</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="ConvenioId" class="form-label">Convenio</label>
+                                        <select asp-for="ConvenioId" class="form-select" id="convenioSelect">
+                                            <option value="">Seleccione un convenio...</option>
+                                            @if (ViewBag.Convenios != null)
+                                            {
+                                                @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Convenios)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="ConvenioId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="CategoriaId" class="form-label">Categoría</label>
+                                        <select asp-for="CategoriaId" class="form-select" id="categoriaSelect">
+                                            <option value="">Seleccione primero un convenio...</option>
+                                        </select>
+                                        <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="TipoLiquidacionId" class="form-label">Tipo de Liquidación</label>
+                                        <select asp-for="TipoLiquidacionId" class="form-select">
+                                            <option value="">Seleccione un tipo...</option>
+                                            @if (ViewBag.TiposLiquidacion != null)
+                                            {
+                                                @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.TiposLiquidacion)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="TipoLiquidacionId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="DisciplinaId" class="form-label">Disciplina</label>
+                                        <select asp-for="DisciplinaId" class="form-select">
+                                            <option value="">Seleccione una disciplina...</option>
+                                            @if (ViewBag.Disciplinas != null)
+                                            {
+                                                @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Disciplinas)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="DisciplinaId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="ValorHoraBasico" class="form-label">Valor Hora Básico</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input asp-for="ValorHoraBasico" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                                        </div>
+                                        <span asp-validation-for="ValorHoraBasico" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="ValorConvenidoDiario" class="form-label">Valor Convenido Diario</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input asp-for="ValorConvenidoDiario" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                                        </div>
+                                        <span asp-validation-for="ValorConvenidoDiario" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input asp-for="AplicaPlusAltura" class="form-check-input" type="checkbox" />
+                                            <label asp-for="AplicaPlusAltura" class="form-check-label">Aplica Plus por Altura</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input asp-for="AplicaPlusFenix" class="form-check-input" type="checkbox" />
+                                            <label asp-for="AplicaPlusFenix" class="form-check-label">Aplica Plus Fénix</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="card">
                         <div class="card-footer text-end">
                             <div class="d-flex">
                                 <a asp-action="Index" class="btn btn-link">Cancelar</a>
@@ -124,4 +273,58 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Dropdown dependiente: Convenio -> Categoría (Vanilla JavaScript)
+        document.addEventListener('DOMContentLoaded', function() {
+            const convenioSelect = document.getElementById('convenioSelect');
+            const categoriaSelect = document.getElementById('categoriaSelect');
+            
+            if (!convenioSelect || !categoriaSelect) {
+                return;
+            }
+            
+            // Al cambiar el convenio
+            convenioSelect.addEventListener('change', function() {
+                const convenioId = this.value;
+                
+                if (!convenioId) {
+                    // Si no hay convenio seleccionado, limpiar categorías
+                    categoriaSelect.innerHTML = '<option value="">Seleccione primero un convenio...</option>';
+                    categoriaSelect.disabled = true;
+                    return;
+                }
+                
+                // Cargar categorías del convenio seleccionado
+                fetch('@Url.Action("GetCategoriasByConvenio", "Empleados")?convenioId=' + convenioId)
+                    .then(response => response.json())
+                    .then(data => {
+                        categoriaSelect.innerHTML = '<option value="">Seleccione una categoría...</option>';
+                        
+                        if (data && data.length > 0) {
+                            data.forEach(item => {
+                                const option = document.createElement('option');
+                                option.value = item.id;
+                                option.textContent = item.nombre;
+                                categoriaSelect.appendChild(option);
+                            });
+                            categoriaSelect.disabled = false;
+                        } else {
+                            categoriaSelect.innerHTML = '<option value="">No hay categorías disponibles</option>';
+                            categoriaSelect.disabled = true;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar categorías:', error);
+                        categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
+                        categoriaSelect.disabled = true;
+                    });
+            });
+            
+            // Si hay un convenio preseleccionado al cargar la página, cargar sus categorías
+            if (convenioSelect.value) {
+                convenioSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
 }

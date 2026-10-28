@@ -1,8 +1,8 @@
-@model List<GestorNomina.Web.Models.Entities.HoraRegistroRaw>
+@model GestorNomina.Web.Models.ViewModels.RegistrosPendientesViewModel
 
 @{
     ViewData["Title"] = "Registros Pendientes de Aprobación";
-    var periodo = ViewBag.Periodo as GestorNomina.Web.Models.Entities.PeriodoCarga;
+    var nombreMes = new System.Globalization.CultureInfo("es-ES").DateTimeFormat.GetMonthName(Model.Mes);
 }
 
 <div class="page-header d-print-none">
@@ -10,7 +10,7 @@
         <div class="row g-2 align-items-center">
             <div class="col">
                 <div class="page-pretitle">
-                    Proyecto: @periodo?.Proyecto.Nombre | Periodo: @periodo?.Anio-@periodo?.Mes.ToString("00")
+                    Proyecto: @Model.ProyectoNombre | @nombreMes.ToUpper() @Model.Anio - @(Model.Quincena == 1 ? "1ra" : "2da") Quincena
                 </div>
                 <h2 class="page-title">
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock-pause" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -20,9 +20,9 @@
                         <path d="M17 17v5"></path>
                         <path d="M21 17v5"></path>
                     </svg>
-                    Registros Pendientes de Aprobación
+                    Parte Diario - Registros Pendientes
                 </h2>
-                <div class="text-muted mt-1">@Model.Count registros pendientes</div>
+                <div class="text-muted mt-1">@Model.TotalRegistros registros | @Model.Empleados.Count empleados</div>
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list">
@@ -30,13 +30,13 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11l-4 4l4 4m-4 -4h11a4 4 0 0 0 0 -8h-1" /></svg>
                         Volver
                     </a>
-                    @if (Model.Any())
+                    @if (Model.Empleados.Any())
                     {
                         <form asp-action="AprobarAutomaticamente" method="post" style="display:inline;">
-                            <input type="hidden" name="periodoCargaId" value="@periodo?.Id" />
+                            <input type="hidden" name="periodoCargaId" value="@Model.PeriodoCargaId" />
                             <button type="submit" class="btn btn-success" onclick="return confirm('¿Está seguro de aprobar automáticamente todos los registros sin modificaciones?')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 11 12 14 20 6" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>
-                                Aprobar Todo Automáticamente
+                                Aprobar Todo
                             </button>
                         </form>
                     }
@@ -47,10 +47,10 @@
 </div>
 
 <div class="page-body">
-    <div class="container-xl">
-        <div class="row row-deck row-cards">
-            @if (!Model.Any())
-            {
+    <div class="container-fluid">
+        @if (!Model.Empleados.Any())
+        {
+            <div class="row row-deck row-cards">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
@@ -63,229 +63,129 @@
                                     Puede proceder con la liquidación
                                 </p>
                                 <div class="empty-action">
-                                    <a asp-action="ProcesarLiquidacion" class="btn btn-primary">
-                                        Procesar Liquidación
+                                    <a asp-action="RegistrosAprobados" asp-route-periodoCargaId="@Model.PeriodoCargaId" class="btn btn-primary">
+                                        Ver Registros Aprobados
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            }
-            else
-            {
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Revisión de Registros</h3>
-                            <div class="card-actions">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar..." id="searchBox">
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Parte Diario por Empleado</h3>
+                    <div class="ms-auto">
+                        <input type="text" class="form-control form-control-sm" placeholder="Buscar empleado..." id="searchBox" style="width: 250px;">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table table-striped" id="parteDiarioTable" style="font-size: 0.875rem;">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="min-width: 80px;">LEGAJO</th>
+                                <th style="min-width: 200px;">APELLIDO Y NOMBRE</th>
+                                @foreach (var dia in Model.DiasQuincena)
+                                {
+                                    <th class="text-center" style="width: 50px; padding: 4px;">@dia</th>
+                                }
+                                <th class="text-center" style="min-width: 80px;">TOTAL</th>
+                                <th class="text-center" style="min-width: 100px;">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var empleado in Model.Empleados)
+                            {
+                                <tr>
+                                    <td class="text-center">
+                                        <strong>@empleado.Legajo</strong>
+                                    </td>
+                                    <td>
+                                        <strong>@empleado.Apellido</strong>, @empleado.Nombre
+                                    </td>
+                                    @foreach (var dia in Model.DiasQuincena)
+                                    {
+                                        <td class="text-center" style="padding: 4px;">
+                                            @if (empleado.HorasPorDia.ContainsKey(dia))
+                                            {
+                                                var horas = empleado.HorasPorDia[dia];
+                                                <span class="badge @(horas > 0 ? "bg-success" : "bg-secondary")" style="font-size: 0.75rem; min-width: 40px;">
+                                                    @horas.ToString("0.##")
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                    }
+                                    <td class="text-center">
+                                        <strong class="text-primary" style="font-size: 1rem;">@empleado.TotalHoras.ToString("0.00")</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="EditarHorasEmpleado" 
+                                           asp-route-periodoCargaId="@Model.PeriodoCargaId" 
+                                           asp-route-legajo="@empleado.Legajo"
+                                           class="btn btn-sm btn-primary"
+                                           title="Editar horas del empleado">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                                            Editar
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                <td colspan="2" class="text-end">TOTALES POR DÍA:</td>
+                                @foreach (var dia in Model.DiasQuincena)
+                                {
+                                    var totalDia = Model.Empleados.Sum(e => e.HorasPorDia.ContainsKey(dia) ? e.HorasPorDia[dia] : 0);
+                                    <td class="text-center">
+                                        <strong class="text-info">@totalDia.ToString("0.##")</strong>
+                                    </td>
+                                }
+                                <td class="text-center">
+                                    <strong class="text-primary" style="font-size: 1.1rem;">
+                                        @Model.Empleados.Sum(e => e.TotalHoras).ToString("0.00")
+                                    </strong>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="card-footer">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted">
+                                <strong>Leyenda:</strong>
+                                <span class="badge bg-success ms-2">Con horas</span>
+                                <span class="badge bg-secondary ms-2">Sin horas</span>
                             </div>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table table-vcenter card-table table-striped" id="registrosTable">
-                                <thead>
-                                    <tr>
-                                        <th>Legajo</th>
-                                        <th>Empleado</th>
-                                        <th>Actividad</th>
-                                        <th>Fecha</th>
-                                        <th>Horas</th>
-                                        <th>Estado</th>
-                                        <th class="w-1">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var registro in Model.OrderBy(r => r.Fecha).ThenBy(r => r.EmpleadoLegajo))
-                                    {
-                                        <tr>
-                                            <td>
-                                                <strong>@registro.EmpleadoLegajo</strong>
-                                            </td>
-                                            <td>
-                                                @if (registro.Empleado != null)
-                                                {
-                                                    <span>@registro.Empleado.Apellido, @registro.Empleado.Nombre</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-red-lt">No encontrado</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-blue-lt">@registro.ActividadCodigo</span>
-                                                @if (registro.Actividad != null)
-                                                {
-                                                    <div class="text-muted small">@registro.Actividad.Descripcion</div>
-                                                }
-                                                else
-                                                {
-                                                    <div><span class="badge bg-red-lt">No encontrada</span></div>
-                                                }
-                                            </td>
-                                            <td>
-                                                @registro.Fecha.ToString("dd/MM/yyyy")
-                                                <div class="text-muted small">@registro.Fecha.ToString("dddd")</div>
-                                            </td>
-                                            <td>
-                                                <strong>@registro.HorasCargadas.ToString("N2")</strong>
-                                            </td>
-                                            <td>
-                                                @if (registro.EmpleadoId.HasValue && registro.ActividadId.HasValue)
-                                                {
-                                                    <span class="badge bg-success-lt">Válido</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-warning-lt">Revisar</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-primary" 
-                                                        onclick="corregirRegistro(@registro.Id, @registro.HorasCargadas)"
-                                                        title="Corregir horas">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
-            }
-        </div>
-    </div>
-</div>
-
-<!-- Modal de Corrección -->
-<div class="modal modal-blur fade" id="modalCorreccion" tabindex="-1" role="dialog" aria-labelledby="modalCorreccionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalCorreccionLabel">Corregir Horas</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formCorreccion" asp-action="AprobarConCorreccion" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body">
-                    <input type="hidden" id="registroRawId" name="registroRawId" />
-                    <div class="mb-3">
-                        <label class="form-label required">Horas Corregidas</label>
-                        <input type="number" 
-                               id="horasCorregidas" 
-                               name="horasCorregidas" 
-                               class="form-control" 
-                               step="0.01" 
-                               min="0" 
-                               max="24" 
-                               required />
-                        <small class="form-hint">Ingrese el valor correcto de horas trabajadas</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label required">Motivo de la Modificación</label>
-                        <textarea name="motivoModificacion" 
-                                  class="form-control" 
-                                  rows="3" 
-                                  placeholder="Describa el motivo del ajuste..."
-                                  required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 11 12 14 20 6" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>
-                        Aprobar con Corrección
-                    </button>
-                </div>
-            </form>
-        </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Función para abrir el modal de corrección
-        function corregirRegistro(id, horasActuales) {
-            console.log('Abriendo modal para registro:', id, 'Horas:', horasActuales);
-            
-            try {
-                // Establecer valores en el formulario
-                document.getElementById('registroRawId').value = id;
-                document.getElementById('horasCorregidas').value = horasActuales;
-                
-                // Limpiar el textarea
-                var textarea = document.querySelector('textarea[name="motivoModificacion"]');
-                if (textarea) {
-                    textarea.value = '';
-                }
-                
-                // Abrir el modal usando tabler.Modal
-                var modalElement = document.getElementById('modalCorreccion');
-                if (modalElement) {
-                    var modal = new tabler.Modal(modalElement);
-                    modal.show();
-                    console.log('Modal abierto exitosamente');
-                } else {
-                    console.error('No se encontró el modal con id "modalCorreccion"');
-                }
-            } catch (error) {
-                console.error('Error al abrir modal:', error);
-                alert('Error al abrir el modal de corrección: ' + error.message);
-            }
-        }
-
         // Búsqueda en la tabla
         document.addEventListener('DOMContentLoaded', function() {
             var searchBox = document.getElementById('searchBox');
             if (searchBox) {
                 searchBox.addEventListener('keyup', function() {
                     var value = this.value.toLowerCase();
-                    var rows = document.querySelectorAll('#registrosTable tbody tr');
+                    var rows = document.querySelectorAll('#parteDiarioTable tbody tr');
                     rows.forEach(function(row) {
                         var text = row.textContent.toLowerCase();
                         row.style.display = text.includes(value) ? '' : 'none';
-                    });
-                });
-            }
-
-            // Envío del formulario por AJAX
-            var formCorreccion = document.getElementById('formCorreccion');
-            if (formCorreccion) {
-                formCorreccion.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    console.log('Enviando formulario...');
-                    
-                    var formData = new FormData(this);
-                    
-                    fetch(this.action, {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => {
-                        console.log('Respuesta recibida:', response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Datos:', data);
-                        if (data.success) {
-                            // Cerrar modal
-                            var modalElement = document.getElementById('modalCorreccion');
-                            var modal = tabler.Modal.getInstance(modalElement);
-                            if (modal) {
-                                modal.hide();
-                            }
-                            // Recargar página
-                            location.reload();
-                        } else {
-                            alert('Error: ' + (data.message || 'No se pudo aprobar el registro'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error al procesar la solicitud: ' + error.message);
                     });
                 });
             }

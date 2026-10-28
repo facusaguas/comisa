@@ -24,6 +24,7 @@ public class EmpleadoService : IEmpleadoService
                 .Include(e => e.EmpleadosProyectos.Where(ep => ep.FechaHasta == null || ep.FechaHasta > DateTime.UtcNow))
                     .ThenInclude(ep => ep.Proyecto)
                 .Include(e => e.Regimen)
+                .Include(e => e.Proyecto) // Proyecto actual del empleado
                 .OrderBy(e => e.Apellido)
                 .ThenBy(e => e.Nombre)
                 .ToListAsync();
@@ -45,6 +46,7 @@ public class EmpleadoService : IEmpleadoService
                 .Include(e => e.EmpleadosProyectos.Where(ep => ep.FechaHasta == null || ep.FechaHasta > DateTime.UtcNow))
                     .ThenInclude(ep => ep.Proyecto)
                 .Include(e => e.Regimen)
+                .Include(e => e.Proyecto)
                 .Where(e => e.Activo)
                 .OrderBy(e => e.Apellido)
                 .ThenBy(e => e.Nombre)
@@ -67,6 +69,7 @@ public class EmpleadoService : IEmpleadoService
                 .Include(e => e.EmpleadosProyectos.Where(ep => ep.FechaHasta == null || ep.FechaHasta > DateTime.UtcNow))
                     .ThenInclude(ep => ep.Proyecto)
                 .Include(e => e.Regimen)
+                .Include(e => e.Proyecto)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             return empleado != null ? MapToViewModel(empleado) : null;
@@ -86,6 +89,7 @@ public class EmpleadoService : IEmpleadoService
                 .Include(e => e.EmpleadosProyectos.Where(ep => ep.FechaHasta == null || ep.FechaHasta > DateTime.UtcNow))
                     .ThenInclude(ep => ep.Proyecto)
                 .Include(e => e.Regimen)
+                .Include(e => e.Proyecto)
                 .FirstOrDefaultAsync(e => e.Legajo == legajo);
 
             return empleado != null ? MapToViewModel(empleado) : null;
@@ -112,11 +116,24 @@ public class EmpleadoService : IEmpleadoService
                 Nombre = model.Nombre.Trim(),
                 Apellido = model.Apellido.Trim(),
                 DocumentoIdentidad = model.DocumentoIdentidad?.Trim(),
+                Cuil = model.Cuil?.Trim(),
                 Cargo = model.Cargo?.Trim(),
                 RegimenId = model.RegimenId,
+                ProyectoId = model.ProyectoId,
                 FechaIngreso = model.FechaIngreso.HasValue 
                     ? DateTime.SpecifyKind(model.FechaIngreso.Value, DateTimeKind.Utc) 
                     : (DateTime?)null,
+                FechaAlta = model.FechaAlta.HasValue 
+                    ? DateTime.SpecifyKind(model.FechaAlta.Value, DateTimeKind.Utc) 
+                    : (DateTime?)null,
+                ConvenioId = model.ConvenioId,
+                TipoLiquidacionId = model.TipoLiquidacionId,
+                CategoriaId = model.CategoriaId,
+                DisciplinaId = model.DisciplinaId,
+                ValorHoraBasico = model.ValorHoraBasico,
+                ValorConvenidoDiario = model.ValorConvenidoDiario,
+                AplicaPlusAltura = model.AplicaPlusAltura,
+                AplicaPlusFenix = model.AplicaPlusFenix,
                 Activo = model.Activo,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -156,11 +173,24 @@ public class EmpleadoService : IEmpleadoService
             empleado.Nombre = model.Nombre.Trim();
             empleado.Apellido = model.Apellido.Trim();
             empleado.DocumentoIdentidad = model.DocumentoIdentidad?.Trim();
+            empleado.Cuil = model.Cuil?.Trim();
             empleado.Cargo = model.Cargo?.Trim();
             empleado.RegimenId = model.RegimenId;
+            empleado.ProyectoId = model.ProyectoId;
             empleado.FechaIngreso = model.FechaIngreso.HasValue 
                 ? DateTime.SpecifyKind(model.FechaIngreso.Value, DateTimeKind.Utc) 
                 : (DateTime?)null;
+            empleado.FechaAlta = model.FechaAlta.HasValue 
+                ? DateTime.SpecifyKind(model.FechaAlta.Value, DateTimeKind.Utc) 
+                : (DateTime?)null;
+            empleado.ConvenioId = model.ConvenioId;
+            empleado.TipoLiquidacionId = model.TipoLiquidacionId;
+            empleado.CategoriaId = model.CategoriaId;
+            empleado.DisciplinaId = model.DisciplinaId;
+            empleado.ValorHoraBasico = model.ValorHoraBasico;
+            empleado.ValorConvenidoDiario = model.ValorConvenidoDiario;
+            empleado.AplicaPlusAltura = model.AplicaPlusAltura;
+            empleado.AplicaPlusFenix = model.AplicaPlusFenix;
             empleado.Activo = model.Activo;
             empleado.UpdatedAt = DateTime.UtcNow;
 
@@ -301,9 +331,20 @@ public class EmpleadoService : IEmpleadoService
             Nombre = empleado.Nombre,
             Apellido = empleado.Apellido,
             DocumentoIdentidad = empleado.DocumentoIdentidad,
+            Cuil = empleado.Cuil,
             Cargo = empleado.Cargo,
             RegimenId = empleado.RegimenId,
+            ProyectoId = empleado.ProyectoId,
             FechaIngreso = empleado.FechaIngreso,
+            FechaAlta = empleado.FechaAlta,
+            ConvenioId = empleado.ConvenioId,
+            TipoLiquidacionId = empleado.TipoLiquidacionId,
+            CategoriaId = empleado.CategoriaId,
+            DisciplinaId = empleado.DisciplinaId,
+            ValorHoraBasico = empleado.ValorHoraBasico,
+            ValorConvenidoDiario = empleado.ValorConvenidoDiario,
+            AplicaPlusAltura = empleado.AplicaPlusAltura,
+            AplicaPlusFenix = empleado.AplicaPlusFenix,
             Activo = empleado.Activo,
             CreatedAt = empleado.CreatedAt,
             UpdatedAt = empleado.UpdatedAt
@@ -312,6 +353,11 @@ public class EmpleadoService : IEmpleadoService
         if (empleado.Regimen != null)
         {
             viewModel.RegimenNombre = empleado.Regimen.Nombre;
+        }
+
+        if (empleado.Proyecto != null)
+        {
+            viewModel.ProyectoNombre = empleado.Proyecto.Nombre;
         }
 
         if (empleado.EmpleadosProyectos != null && empleado.EmpleadosProyectos.Any())
