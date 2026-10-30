@@ -25,9 +25,9 @@ public class PayrollEngine : IPayrollEngine
         _steps = new List<IPayrollStep>
         {
             new StepAgregadorHoras(catalogResolver),
-            new StepConceptosRemunerativos(),
-            new StepNetoConvenido(catalogResolver),
-            new StepDeducciones(),
+            new StepConceptosRemunerativos(context),
+            new StepNetoConvenido(catalogResolver, context), // Inyectar context para recalcular conceptos
+            new StepDeducciones(context),
             new StepCierreRecibo()
         };
     }
@@ -107,13 +107,23 @@ public class PayrollEngine : IPayrollEngine
         if (!registrosFiltrados.Any())
             throw new InvalidOperationException($"No hay registros aprobados para el empleado {empleado.Legajo} en el periodo {periodo} quincena {quincena}");
 
+        // Cargar novedades del periodo
+        var fechaPeriodo = DateTime.Parse(periodo + "-01");
+        var novedades = await _context.Novedades
+            .Where(n => n.EmpleadoId == empleadoId 
+                && n.Periodo.Year == fechaPeriodo.Year
+                && n.Periodo.Month == fechaPeriodo.Month
+                && n.Quincena == quincena)
+            .ToListAsync();
+
         // Crear contexto de liquidación
         var context = new PayrollContext
         {
             Empleado = empleado,
             Periodo = periodo,
             Quincena = quincena,
-            Registros = registrosFiltrados
+            Registros = registrosFiltrados,
+            Novedades = novedades
         };
 
         // Ejecutar pipeline de pasos

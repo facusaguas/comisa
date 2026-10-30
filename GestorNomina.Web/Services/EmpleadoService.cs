@@ -133,7 +133,7 @@ public class EmpleadoService : IEmpleadoService
                 ValorHoraBasico = model.ValorHoraBasico,
                 ValorConvenidoDiario = model.ValorConvenidoDiario,
                 AplicaPlusAltura = model.AplicaPlusAltura,
-                AplicaPlusFenix = model.AplicaPlusFenix,
+                AplicaPlusElectrico = model.AplicaPlusElectrico,
                 Activo = model.Activo,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -190,7 +190,7 @@ public class EmpleadoService : IEmpleadoService
             empleado.ValorHoraBasico = model.ValorHoraBasico;
             empleado.ValorConvenidoDiario = model.ValorConvenidoDiario;
             empleado.AplicaPlusAltura = model.AplicaPlusAltura;
-            empleado.AplicaPlusFenix = model.AplicaPlusFenix;
+            empleado.AplicaPlusElectrico = model.AplicaPlusElectrico;
             empleado.Activo = model.Activo;
             empleado.UpdatedAt = DateTime.UtcNow;
 
@@ -344,7 +344,7 @@ public class EmpleadoService : IEmpleadoService
             ValorHoraBasico = empleado.ValorHoraBasico,
             ValorConvenidoDiario = empleado.ValorConvenidoDiario,
             AplicaPlusAltura = empleado.AplicaPlusAltura,
-            AplicaPlusFenix = empleado.AplicaPlusFenix,
+            AplicaPlusElectrico = empleado.AplicaPlusElectrico,
             Activo = empleado.Activo,
             CreatedAt = empleado.CreatedAt,
             UpdatedAt = empleado.UpdatedAt

@@ -29,6 +29,9 @@ public class ProyectoViewModel
     [Display(Name = "Activo")]
     public bool Activo { get; set; } = true;
 
+    [Display(Name = "Premio Final de Obra")]
+    public decimal? PremioFinalObra { get; set; }
+
     // Propiedades de visualización
     [Display(Name = "Estado")]
     public string EstadoTexto => Activo ? "Activo" : "Inactivo";

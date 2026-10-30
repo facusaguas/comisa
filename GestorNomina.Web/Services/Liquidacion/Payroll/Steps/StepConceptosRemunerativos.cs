@@ -1,4 +1,6 @@
 using GestorNomina.Web.Models.Enums;
+using Microsoft.EntityFrameworkCore;
+using GestorNomina.Web.Data;
 
 namespace GestorNomina.Web.Services.Liquidacion.Payroll.Steps;
 
@@ -7,47 +9,33 @@ namespace GestorNomina.Web.Services.Liquidacion.Payroll.Steps;
 /// </summary>
 public class StepConceptosRemunerativos : IPayrollStep
 {
+    private readonly ApplicationDbContext? _context;
+
     public string StepName => "Conceptos Remunerativos";
 
-    public Task ExecuteAsync(PayrollContext context)
+    public StepConceptosRemunerativos()
+    {
+        // Constructor sin parámetros para compatibilidad
+    }
+
+    public StepConceptosRemunerativos(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task ExecuteAsync(PayrollContext context)
     {
         // Determinar el valor hora según el tipo de liquidación
+        // TODOS los tipos ahora usan Categoria.SalarioBasico
         decimal valorHora;
         
-        if (context.Empleado.TipoLiquidacion?.Codigo == "DIRECTOS" || 
-            context.Empleado.TipoLiquidacion?.Codigo == "DIRECTOS_CONVERSION_ACUERDO")
+        if (context.Empleado.Categoria?.SalarioBasico == null || context.Empleado.Categoria.SalarioBasico <= 0)
         {
-            // Para empleados DIRECTOS: tomar el salario básico de la categoría
-            if (context.Empleado.Categoria?.SalarioBasico == null || context.Empleado.Categoria.SalarioBasico <= 0)
-            {
-                throw new InvalidOperationException(
-                    $"El empleado {context.Empleado.Legajo} es DIRECTO pero su categoría no tiene configurado el salario básico");
-            }
-            
-            valorHora = context.Empleado.Categoria.SalarioBasico.Value;
+            throw new InvalidOperationException(
+                $"El empleado {context.Empleado.Legajo} no tiene configurado el salario básico en su categoría");
         }
-        else if (context.Empleado.TipoLiquidacion?.Codigo == "INDIRECTO")
-        {
-            // Para empleados INDIRECTOS: tomar el valor hora básico del empleado
-            if (context.Empleado.ValorHoraBasico == null || context.Empleado.ValorHoraBasico <= 0)
-            {
-                throw new InvalidOperationException(
-                    $"El empleado {context.Empleado.Legajo} es INDIRECTO pero no tiene configurado el valor hora básico");
-            }
-            
-            valorHora = context.Empleado.ValorHoraBasico.Value;
-        }
-        else
-        {
-            // Si no tiene tipo de liquidación definido, intentar usar el valor hora del empleado por compatibilidad
-            if (context.Empleado.ValorHoraBasico == null || context.Empleado.ValorHoraBasico <= 0)
-            {
-                throw new InvalidOperationException(
-                    $"El empleado {context.Empleado.Legajo} no tiene configurado el valor hora básico ni tipo de liquidación");
-            }
-            
-            valorHora = context.Empleado.ValorHoraBasico.Value;
-        }
+        
+        valorHora = context.Empleado.Categoria.SalarioBasico.Value;
 
         // 1. Sueldo Básico (1001): HSNOR * ValorHora
         var sueldoBasico = context.HSNOR * valorHora;
@@ -147,44 +135,121 @@ public class StepConceptosRemunerativos : IPayrollStep
             });
         }
 
-        // 8. Presentismo UOCRA 20% (1020): (SueldoBasico + Nocturnas) * 0.20
-        // Solo si no hay ausencias injustificadas
-        if (context.DiasAusenciasInjustificadas == 0)
+        // 8. Plus Eléctrico 15% (1090): SueldoBasico * 0.15
+        if (context.Empleado.AplicaPlusElectrico && sueldoBasico > 0)
         {
-            var basePresent = sueldoBasico + hsNocturnas;
-            if (basePresent > 0)
+            var plusElectrico = sueldoBasico * 0.15m;
+            context.ItemsRemunerativos.Add(new ItemLiquidacion
             {
-                var presentismo = basePresent * 0.20m;
-                context.ItemsRemunerativos.Add(new ItemLiquidacion
+                Concepto = CodigoConceptoTango.PlusElectrico,
+                Unidades = 1,
+                ValorUnitario = plusElectrico,
+                Subtotal = plusElectrico,
+                Descripcion = "Plus Eléctrico 15%"
+            });
+        }
+
+        // 9. Presentismo UOCRA 20% (1020): (SueldoBasico + Nocturnas) * 0.20
+        // Ya no requiere ausencias = 0, se paga siempre
+        var basePresent = sueldoBasico + hsNocturnas;
+        if (basePresent > 0)
+        {
+            var presentismo = basePresent * 0.20m;
+            context.ItemsRemunerativos.Add(new ItemLiquidacion
+            {
+                Concepto = CodigoConceptoTango.Presentismo,
+                Unidades = 1,
+                ValorUnitario = presentismo,
+                Subtotal = presentismo,
+                Descripcion = "Presentismo UOCRA 20%"
+            });
+        }
+
+        // 10. Adicional Montaje UOCRA (Fenix) 25% (1025): (SueldoBasico + Nocturnas) * 0.25
+        // Solo si tiene novedad FinRoster en el periodo/quincena
+        var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
+        if (tieneFinRoster)
+        {
+            // Validar que no se haya pagado ya este mes
+            var fechaPeriodo = DateTime.Parse(context.Periodo + "-01");
+            bool yaPagadoEsteMes = false;
+            
+            if (_context != null)
+            {
+                yaPagadoEsteMes = await _context.ReciboDetalles
+                    .Include(rd => rd.Recibo)
+                    .Include(rd => rd.Concepto)
+                    .AnyAsync(rd => rd.Recibo.EmpleadoId == context.Empleado.Id
+                        && rd.Recibo.Periodo == context.Periodo
+                        && rd.Concepto.Codigo == ((int)CodigoConceptoTango.AdicionalMontajeFenix).ToString()
+                        && rd.Recibo.Quincena != context.Quincena); // Diferente quincena
+            }
+
+            if (!yaPagadoEsteMes)
+            {
+                var baseAdicional = sueldoBasico + hsNocturnas;
+                if (baseAdicional > 0)
                 {
-                    Concepto = CodigoConceptoTango.Presentismo,
+                    var adicionalMontaje = baseAdicional * 0.25m;
+                    context.ItemsRemunerativos.Add(new ItemLiquidacion
+                    {
+                        Concepto = CodigoConceptoTango.AdicionalMontajeFenix,
+                        Unidades = 1,
+                        ValorUnitario = adicionalMontaje,
+                        Subtotal = adicionalMontaje,
+                        Descripcion = "Adicional Montaje UOCRA (Fenix) 25%"
+                    });
+                }
+            }
+        }
+
+        // 11. Compensación Especial (1033): ValorHora * 40
+        // Se paga si trabajó >= 14 días en el roster (sumando quincena anterior y actual)
+        decimal diasRoster = context.DIAS;
+        
+        // Sumar días de la quincena anterior si estamos en quincena 2
+        if (context.Quincena == 2 && _context != null)
+        {
+            var reciboQuincena1 = await _context.Recibos
+                .FirstOrDefaultAsync(r => r.EmpleadoId == context.Empleado.Id
+                    && r.Periodo == context.Periodo
+                    && r.Quincena == 1);
+            
+            if (reciboQuincena1 != null)
+            {
+                diasRoster += reciboQuincena1.DiasTrabajados;
+            }
+        }
+        
+        if (diasRoster >= 14)
+        {
+            var compensacion = valorHora * 40 * 1.45m;
+            context.ItemsRemunerativos.Add(new ItemLiquidacion
+            {
+                Concepto = CodigoConceptoTango.CompensacionEspecial,
+                Unidades = 1,
+                ValorUnitario = compensacion,
+                Subtotal = compensacion,
+                Descripcion = "Compensación Especial (14 días roster)"
+            });
+
+            // 12. Premio Final de Obra (1034): Valor fijo del proyecto (NO REMUNERATIVO)
+            // Solo se paga junto con la compensación especial
+            if (context.Empleado.Proyecto?.PremioFinalObra != null && context.Empleado.Proyecto.PremioFinalObra > 0)
+            {
+                var premioObra = context.Empleado.Proyecto.PremioFinalObra.Value;
+                context.ItemsNoRemunerativos.Add(new ItemLiquidacion
+                {
+                    Concepto = CodigoConceptoTango.PremioFinalObra,
                     Unidades = 1,
-                    ValorUnitario = presentismo,
-                    Subtotal = presentismo,
-                    Descripcion = "Presentismo UOCRA 20%"
+                    ValorUnitario = premioObra,
+                    Subtotal = premioObra,
+                    Descripcion = "Premio Final de Obra (No Remunerativo)"
                 });
             }
         }
 
-        // 9. Adicional Montaje / Fénix 25% (1025): (SueldoBasico + Nocturnas) * 0.25
-        if (context.Empleado.AplicaPlusFenix)
-        {
-            var baseFenix = sueldoBasico + hsNocturnas;
-            if (baseFenix > 0)
-            {
-                var adicionalFenix = baseFenix * 0.25m;
-                context.ItemsRemunerativos.Add(new ItemLiquidacion
-                {
-                    Concepto = CodigoConceptoTango.AdicionalMontajeFenix,
-                    Unidades = 1,
-                    ValorUnitario = adicionalFenix,
-                    Subtotal = adicionalFenix,
-                    Descripcion = "Adicional Montaje Fénix 25%"
-                });
-            }
-        }
-
-        // 10. Feriados / Licencias (1030): DiasFeriado * (ValorHora * 8)
+        // 13. Feriados / Licencias (1030): DiasFeriado * (ValorHora * 8)
         if (context.DiasFeriado > 0)
         {
             var valorDiaFeriado = valorHora * 8;
@@ -199,9 +264,29 @@ public class StepConceptosRemunerativos : IPayrollStep
             });
         }
 
+        // 14. Enfermedad / Licencias (1031): DiasEnfermo * (ValorHora * 8)
+        var diasEnfermedad = context.Novedades
+            .Where(n => n.TipoNovedad == TipoNovedadLiquidacion.Enfermedad)
+            .Count();
+        
+        if (diasEnfermedad > 0)
+        {
+            var valorDiaEnfermedad = valorHora * 8;
+            var totalEnfermedad = diasEnfermedad * valorDiaEnfermedad;
+            context.ItemsRemunerativos.Add(new ItemLiquidacion
+            {
+                Concepto = CodigoConceptoTango.Enfermedad,
+                Unidades = diasEnfermedad,
+                ValorUnitario = valorDiaEnfermedad,
+                Subtotal = totalEnfermedad,
+                Descripcion = "Enfermedad / Licencias"
+            });
+        }
+
         // Calcular total bruto remunerativo parcial (antes de bonificación)
         context.TotalBrutoRemunerativo = context.ItemsRemunerativos.Sum(i => i.Subtotal);
-
-        return Task.CompletedTask;
+        
+        // Calcular total bruto no remunerativo
+        context.TotalBrutoNoRemunerativo = context.ItemsNoRemunerativos.Sum(i => i.Subtotal);
     }
 }

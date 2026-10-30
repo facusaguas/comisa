@@ -86,8 +86,8 @@ public class Empleado
     [Column("aplica_plus_altura")]
     public bool AplicaPlusAltura { get; set; } = false;
 
-    [Column("aplica_plus_fenix")]
-    public bool AplicaPlusFenix { get; set; } = false;
+    [Column("aplica_plus_electrico")]
+    public bool AplicaPlusElectrico { get; set; } = false;
 
     // Navigation Properties - Existentes
     [ForeignKey("RegimenId")]

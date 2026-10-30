@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestorNomina.Web.Models.Entities;
 
@@ -29,6 +30,10 @@ public class Proyecto
 
     [Column("activo")]
     public bool Activo { get; set; } = true;
+
+    [Column("premio_final_obra")]
+    [Precision(12, 2)]
+    public decimal? PremioFinalObra { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

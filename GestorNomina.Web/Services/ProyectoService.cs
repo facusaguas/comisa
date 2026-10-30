@@ -110,6 +110,7 @@ public class ProyectoService : IProyectoService
                 Nombre = model.Nombre.Trim(),
                 Ubicacion = model.Ubicacion?.Trim(),
                 RegimenDefaultId = model.RegimenDefaultId,
+                PremioFinalObra = model.PremioFinalObra,
                 Activo = model.Activo,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -147,6 +148,7 @@ public class ProyectoService : IProyectoService
             proyecto.Nombre = model.Nombre.Trim();
             proyecto.Ubicacion = model.Ubicacion?.Trim();
             proyecto.RegimenDefaultId = model.RegimenDefaultId;
+            proyecto.PremioFinalObra = model.PremioFinalObra;
             proyecto.Activo = model.Activo;
             proyecto.UpdatedAt = DateTime.UtcNow;
 
@@ -268,6 +270,7 @@ public class ProyectoService : IProyectoService
             Nombre = proyecto.Nombre,
             Ubicacion = proyecto.Ubicacion,
             RegimenDefaultId = proyecto.RegimenDefaultId,
+            PremioFinalObra = proyecto.PremioFinalObra,
             Activo = proyecto.Activo,
             CreatedAt = proyecto.CreatedAt,
             UpdatedAt = proyecto.UpdatedAt

@@ -112,11 +112,11 @@ namespace GestorNomina.Web.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CodigoTango")
+                    b.Property<string>("Codigo")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasColumnName("codigo_tango");
+                        .HasColumnName("codigo");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -124,15 +124,13 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("nombre");
 
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("tipo");
+                    b.Property<int>("TipoConcepto")
+                        .HasColumnType("integer")
+                        .HasColumnName("tipo_concepto");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CodigoTango")
+                    b.HasIndex("Codigo")
                         .IsUnique();
 
                     b.ToTable("conceptos_liquidacion");
@@ -223,9 +221,9 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("aplica_plus_altura");
 
-                    b.Property<bool>("AplicaPlusFenix")
+                    b.Property<bool>("AplicaPlusElectrico")
                         .HasColumnType("boolean")
-                        .HasColumnName("aplica_plus_fenix");
+                        .HasColumnName("aplica_plus_electrico");
 
                     b.Property<string>("Cargo")
                         .HasMaxLength(100)
@@ -536,6 +534,59 @@ namespace GestorNomina.Web.Migrations
                     b.ToTable("horas_registros_raw");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Novedad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("EmpleadoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("empleado_id");
+
+                    b.Property<DateTime>("FechaNovedad")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_novedad");
+
+                    b.Property<decimal?>("MontoNovedad")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("monto_novedad");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("observaciones");
+
+                    b.Property<DateTime>("Periodo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("periodo");
+
+                    b.Property<int>("Quincena")
+                        .HasColumnType("integer")
+                        .HasColumnName("quincena");
+
+                    b.Property<int>("TipoNovedad")
+                        .HasColumnType("integer")
+                        .HasColumnName("tipo_novedad");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmpleadoId", "Periodo", "Quincena");
+
+                    b.ToTable("novedades");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.PeriodoCarga", b =>
                 {
                     b.Property<int>("Id")
@@ -626,6 +677,11 @@ namespace GestorNomina.Web.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("nombre");
+
+                    b.Property<decimal?>("PremioFinalObra")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("premio_final_obra");
 
                     b.Property<int?>("RegimenDefaultId")
                         .HasColumnType("integer")
@@ -1215,6 +1271,17 @@ namespace GestorNomina.Web.Migrations
                     b.Navigation("Empleado");
 
                     b.Navigation("PeriodoCarga");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Novedad", b =>
+                {
+                    b.HasOne("GestorNomina.Web.Models.Entities.Empleado", "Empleado")
+                        .WithMany()
+                        .HasForeignKey("EmpleadoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Empleado");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.PeriodoCarga", b =>

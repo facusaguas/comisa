@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using GestorNomina.Web.Models.Enums;
 
 namespace GestorNomina.Web.Models.Entities;
 
 /// <summary>
-/// Catálogo de Conceptos de Liquidación (Tango)
+/// Catálogo de Conceptos de Liquidación
 /// </summary>
 [Table("conceptos_liquidacion")]
 public class ConceptoLiquidacion
@@ -15,8 +16,8 @@ public class ConceptoLiquidacion
 
     [Required]
     [MaxLength(20)]
-    [Column("codigo_tango")]
-    public string CodigoTango { get; set; } = string.Empty;
+    [Column("codigo")]
+    public string Codigo { get; set; } = string.Empty;
 
     [Required]
     [MaxLength(100)]
@@ -24,9 +25,8 @@ public class ConceptoLiquidacion
     public string Nombre { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(20)]
-    [Column("tipo")]
-    public string Tipo { get; set; } = string.Empty; // REMUNERATIVO, NO_REMUNERATIVO, DEDUCCION
+    [Column("tipo_concepto")]
+    public TipoConcepto TipoConcepto { get; set; }
 
     // Navigation Properties
     public virtual ICollection<ReciboDetalle> ReciboDetalles { get; set; } = new List<ReciboDetalle>();

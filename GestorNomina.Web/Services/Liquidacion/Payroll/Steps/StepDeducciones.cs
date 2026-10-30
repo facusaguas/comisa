@@ -1,4 +1,6 @@
+using GestorNomina.Web.Data;
 using GestorNomina.Web.Models.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestorNomina.Web.Services.Liquidacion.Payroll.Steps;
 
@@ -7,6 +9,8 @@ namespace GestorNomina.Web.Services.Liquidacion.Payroll.Steps;
 /// </summary>
 public class StepDeducciones : IPayrollStep
 {
+    private readonly ApplicationDbContext? _context;
+    
     private const decimal TASA_JUBILACION = 0.11m; // 11%
     private const decimal TASA_LEY_19032 = 0.03m; // 3%
     private const decimal TASA_OBRA_SOCIAL = 0.03m; // 3%
@@ -15,10 +19,20 @@ public class StepDeducciones : IPayrollStep
 
     public string StepName => "Deducciones";
 
-    public Task ExecuteAsync(PayrollContext context)
+    public StepDeducciones()
+    {
+        // Constructor sin parámetros para compatibilidad
+    }
+
+    public StepDeducciones(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task ExecuteAsync(PayrollContext context)
     {
         var totalBruto = context.TotalBrutoRemunerativo;
-        var valorHoraBasico = context.Empleado.ValorHoraBasico ?? 0;
+        var valorHoraBasico = context.Empleado.Categoria?.SalarioBasico ?? 0;
 
         // 1. Jubilación 11% (5001)
         var jubilacion = totalBruto * TASA_JUBILACION;
@@ -74,18 +88,71 @@ public class StepDeducciones : IPayrollStep
         });
 
         // 5. Seguro de Vida Obligatorio (5010) - Importe fijo
-        context.ItemsDeducciones.Add(new ItemLiquidacion
+        // Solo se paga UNA VEZ AL MES y siempre en la SEGUNDA QUINCENA
+        // EXCEPCIÓN: Si hay novedad de Baja en la quincena actual, se paga en esa quincena
+        bool pagarSeguroVida = false;
+        
+        // Verificar si tiene novedad de Baja en esta quincena
+        var tieneBajaEnQuincena = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.Baja);
+        
+        if (tieneBajaEnQuincena)
         {
-            Concepto = CodigoConceptoTango.SeguroDeVida,
-            Unidades = 1,
-            ValorUnitario = IMPORTE_SEGURO_VIDA,
-            Subtotal = IMPORTE_SEGURO_VIDA,
-            Descripcion = "Seguro de Vida Obligatorio"
-        });
+            // Si tiene baja en esta quincena, pagar el seguro
+            pagarSeguroVida = true;
+        }
+        else if (context.Quincena == 2)
+        {
+            // Si es segunda quincena y NO tiene baja, verificar que no se haya pagado ya
+            bool yaPagadoEnQuincena1 = false;
+            
+            if (_context != null)
+            {
+                yaPagadoEnQuincena1 = await _context.ReciboDetalles
+                    .Include(rd => rd.Recibo)
+                    .Include(rd => rd.Concepto)
+                    .AnyAsync(rd => rd.Recibo.EmpleadoId == context.Empleado.Id
+                        && rd.Recibo.Periodo == context.Periodo
+                        && rd.Concepto.Codigo == ((int)CodigoConceptoTango.SeguroDeVida).ToString()
+                        && rd.Recibo.Quincena == 1);
+            }
+            
+            // Solo pagar si no se pagó en quincena 1
+            pagarSeguroVida = !yaPagadoEnQuincena1;
+        }
+        
+        if (pagarSeguroVida)
+        {
+            context.ItemsDeducciones.Add(new ItemLiquidacion
+            {
+                Concepto = CodigoConceptoTango.SeguroDeVida,
+                Unidades = 1,
+                ValorUnitario = IMPORTE_SEGURO_VIDA,
+                Subtotal = IMPORTE_SEGURO_VIDA,
+                Descripcion = "Seguro de Vida Obligatorio"
+            });
+        }
+
+        // 6. Embargo (5011) - Si existe novedad de embargo
+        var novedadesEmbargo = context.Novedades
+            .Where(n => n.TipoNovedad == TipoNovedadLiquidacion.Embargo)
+            .ToList();
+        
+        foreach (var novedad in novedadesEmbargo)
+        {
+            if (novedad.MontoNovedad.HasValue && novedad.MontoNovedad.Value > 0)
+            {
+                context.ItemsDeducciones.Add(new ItemLiquidacion
+                {
+                    Concepto = CodigoConceptoTango.Embargo,
+                    Unidades = 1,
+                    ValorUnitario = novedad.MontoNovedad.Value,
+                    Subtotal = novedad.MontoNovedad.Value,
+                    Descripcion = $"Embargo{(string.IsNullOrWhiteSpace(novedad.Observaciones) ? "" : $" - {novedad.Observaciones}")}"
+                });
+            }
+        }
 
         // Calcular total deducciones
         context.TotalDeducciones = context.ItemsDeducciones.Sum(i => i.Subtotal);
-
-        return Task.CompletedTask;
     }
 }

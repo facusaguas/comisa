@@ -39,9 +39,9 @@ public class CatalogResolver : ICatalogResolver
 
         // Cargar Conceptos de Liquidación
         var conceptos = await _context.ConceptosLiquidacion
-            .Select(cl => new { cl.Id, cl.CodigoTango })
+            .Select(cl => new { cl.Id, cl.Codigo })
             .ToListAsync();
-        _conceptos = conceptos.ToDictionary(x => x.CodigoTango, x => x.Id);
+        _conceptos = conceptos.ToDictionary(x => x.Codigo, x => x.Id);
 
         // Cargar Tipos de Liquidación
         var tiposLiquidacion = await _context.TiposLiquidacion

@@ -30,10 +30,10 @@ public class TangoExportService : ITangoExportService
         var sb = new StringBuilder();
 
         // Generar líneas del archivo Tango
-        foreach (var detalle in recibo.Detalles.OrderBy(d => d.Concepto.CodigoTango))
+        foreach (var detalle in recibo.Detalles.OrderBy(d => d.Concepto.Codigo))
         {
             // Formato: [Legajo];[CodigoConcepto];[Unidades];[ImporteCalculado]
-            var linea = $"{recibo.Empleado.Legajo};{detalle.Concepto.CodigoTango};{detalle.Unidades:F2};{detalle.Subtotal:F2}";
+            var linea = $"{recibo.Empleado.Legajo};{detalle.Concepto.Codigo};{detalle.Unidades:F2};{detalle.Subtotal:F2}";
             sb.AppendLine(linea);
         }
 
@@ -60,9 +60,9 @@ public class TangoExportService : ITangoExportService
 
         foreach (var recibo in recibos)
         {
-            foreach (var detalle in recibo.Detalles.OrderBy(d => d.Concepto.CodigoTango))
+            foreach (var detalle in recibo.Detalles.OrderBy(d => d.Concepto.Codigo))
             {
-                var linea = $"{recibo.Empleado.Legajo};{detalle.Concepto.CodigoTango};{detalle.Unidades:F2};{detalle.Subtotal:F2}";
+                var linea = $"{recibo.Empleado.Legajo};{detalle.Concepto.Codigo};{detalle.Unidades:F2};{detalle.Subtotal:F2}";
                 sb.AppendLine(linea);
             }
         }
@@ -99,9 +99,9 @@ public class TangoExportService : ITangoExportService
             sb.AppendLine($"E|{recibo.Empleado.Legajo}|{recibo.Empleado.Cuil}|{recibo.Empleado.Nombre}|{recibo.Empleado.Apellido}|{recibo.TotalBruto:F2}|{recibo.TotalDeducciones:F2}|{recibo.TotalNeto:F2}|{recibo.Empleado.TipoLiquidacion?.Codigo ?? "QUINCENAL"}");
 
             // Líneas de conceptos
-            foreach (var detalle in recibo.Detalles.OrderBy(d => d.Concepto.CodigoTango))
+            foreach (var detalle in recibo.Detalles.OrderBy(d => d.Concepto.Codigo))
             {
-                sb.AppendLine($"D|{recibo.Empleado.Legajo}|{detalle.Concepto.CodigoTango}|{detalle.Unidades:F2}|{(detalle.ValorUnitario.HasValue ? detalle.ValorUnitario.Value.ToString("F2") : "")}|{detalle.Subtotal:F2}");
+                sb.AppendLine($"D|{recibo.Empleado.Legajo}|{detalle.Concepto.Codigo}|{detalle.Unidades:F2}|{(detalle.ValorUnitario.HasValue ? detalle.ValorUnitario.Value.ToString("F2") : "")}|{detalle.Subtotal:F2}");
             }
         }
 

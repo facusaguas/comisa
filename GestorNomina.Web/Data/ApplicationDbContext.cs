@@ -34,6 +34,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ConceptoLiquidacion> ConceptosLiquidacion { get; set; }
     public DbSet<Recibo> Recibos { get; set; }
     public DbSet<ReciboDetalle> ReciboDetalles { get; set; }
+    public DbSet<Novedad> Novedades { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -289,13 +290,16 @@ public class ApplicationDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<ConceptoLiquidacion>()
-            .HasIndex(cl => cl.CodigoTango)
+            .HasIndex(cl => cl.Codigo)
             .IsUnique();
 
         // Índices de rendimiento para liquidación
 
         modelBuilder.Entity<Recibo>()
             .HasIndex(r => new { r.EmpleadoId, r.Periodo, r.Quincena });
+
+        modelBuilder.Entity<Novedad>()
+            .HasIndex(n => new { n.EmpleadoId, n.Periodo, n.Quincena });
 
         // Relaciones de Categoria
         modelBuilder.Entity<Categoria>()

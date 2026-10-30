@@ -48,6 +48,7 @@
                                     <th>Nombre</th>
                                     <th>Ubicación</th>
                                     <th>Régimen por Defecto</th>
+                                    <th>Premio Final Obra</th>
                                     <th>Empleados</th>
                                     <th>Estado</th>
                                     <th class="w-1">Acciones</th>
@@ -57,7 +58,7 @@
                                 @if (Model.Count == 0)
                                 {
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted">No hay proyectos registrados</td>
+                                        <td colspan="8" class="text-center text-muted">No hay proyectos registrados</td>
                                     </tr>
                                 }
                                 else
@@ -74,6 +75,16 @@
                                                 @if (!string.IsNullOrEmpty(proyecto.RegimenDefaultNombre))
                                                 {
                                                     <span class="badge bg-blue-lt">@proyecto.RegimenDefaultNombre</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (proyecto.PremioFinalObra.HasValue && proyecto.PremioFinalObra.Value > 0)
+                                                {
+                                                    <span class="badge bg-green-lt">@proyecto.PremioFinalObra.Value.ToString("C0")</span>
                                                 }
                                                 else
                                                 {

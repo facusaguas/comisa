@@ -80,8 +80,8 @@ public class EmpleadoViewModel
     [Display(Name = "Aplica Plus Altura")]
     public bool AplicaPlusAltura { get; set; } = false;
 
-    [Display(Name = "Aplica Plus Fénix")]
-    public bool AplicaPlusFenix { get; set; } = false;
+    [Display(Name = "Aplica Plus Eléctrico")]
+    public bool AplicaPlusElectrico { get; set; } = false;
 
     // ==========================================
     // PROPIEDADES DE VISUALIZACIÓN

@@ -1,10 +1,11 @@
 @model GestorNomina.Web.Models.Entities.Recibo
+@using GestorNomina.Web.Models.Enums
 
 @{
     ViewData["Title"] = $"Recibo - {Model.Empleado.Legajo}";
-    var conceptosRemunerativos = Model.Detalles.Where(d => d.Concepto.Tipo == "REMUNERATIVO").ToList();
-    var conceptosNoRemunerativos = Model.Detalles.Where(d => d.Concepto.Tipo == "NO_REMUNERATIVO").ToList();
-    var deducciones = Model.Detalles.Where(d => d.Concepto.Tipo == "DEDUCCION").ToList();
+    var conceptosRemunerativos = Model.Detalles.Where(d => d.Concepto.TipoConcepto == TipoConcepto.REMUNERATIVO).ToList();
+    var conceptosNoRemunerativos = Model.Detalles.Where(d => d.Concepto.TipoConcepto == TipoConcepto.NO_REMUNERATIVO).ToList();
+    var deducciones = Model.Detalles.Where(d => d.Concepto.TipoConcepto == TipoConcepto.DEDUCCION).ToList();
 }
 
 <div class="page-header d-print-none">
@@ -91,7 +92,7 @@
                             @foreach (var detalle in conceptosRemunerativos)
                             {
                                 <tr>
-                                    <td>@detalle.Concepto.CodigoTango</td>
+                                    <td>@detalle.Concepto.Codigo</td>
                                     <td>@detalle.Concepto.Nombre</td>
                                     <td class="text-center">@detalle.Unidades.ToString("N2")</td>
                                     <td class="text-end">@(detalle.ValorUnitario.HasValue ? detalle.ValorUnitario.Value.ToString("N2") : "-")</td>
@@ -125,7 +126,7 @@
                                 @foreach (var detalle in conceptosNoRemunerativos)
                                 {
                                     <tr>
-                                        <td>@detalle.Concepto.CodigoTango</td>
+                                        <td>@detalle.Concepto.Codigo</td>
                                         <td>@detalle.Concepto.Nombre</td>
                                         <td class="text-center">@detalle.Unidades.ToString("N2")</td>
                                         <td class="text-end">@(detalle.ValorUnitario.HasValue ? detalle.ValorUnitario.Value.ToString("N2") : "-")</td>
@@ -156,7 +157,7 @@
                             @foreach (var detalle in deducciones)
                             {
                                 <tr>
-                                    <td>@detalle.Concepto.CodigoTango</td>
+                                    <td>@detalle.Concepto.Codigo</td>
                                     <td>@detalle.Concepto.Nombre</td>
                                     <td class="text-end text-danger"><strong>$@detalle.Subtotal.ToString("N2")</strong></td>
                                 </tr>

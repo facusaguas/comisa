@@ -183,15 +183,8 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="TipoLiquidacionId" class="form-label">Tipo de Liquidación</label>
-                                        <select asp-for="TipoLiquidacionId" class="form-select">
+                                        <select asp-for="TipoLiquidacionId" asp-items="ViewBag.TiposLiquidacion" class="form-select">
                                             <option value="">Seleccione un tipo...</option>
-                                            @if (ViewBag.TiposLiquidacion != null)
-                                            {
-                                                @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.TiposLiquidacion)
-                                                {
-                                                    <option value="@item.Value">@item.Text</option>
-                                                }
-                                            }
                                         </select>
                                         <span asp-validation-for="TipoLiquidacionId" class="text-danger"></span>
                                     </div>
@@ -247,8 +240,8 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <div class="form-check form-switch">
-                                            <input asp-for="AplicaPlusFenix" class="form-check-input" type="checkbox" />
-                                            <label asp-for="AplicaPlusFenix" class="form-check-label">Aplica Plus Fénix</label>
+                                            <input asp-for="AplicaPlusElectrico" class="form-check-input" type="checkbox" />
+                                            <label asp-for="AplicaPlusElectrico" class="form-check-label">Aplica Plus Eléctrico</label>
                                         </div>
                                     </div>
                                 </div>

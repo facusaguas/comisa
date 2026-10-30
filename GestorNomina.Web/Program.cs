@@ -44,6 +44,8 @@ builder.Services.AddScoped<IProyectoService, ProyectoService>();
 builder.Services.AddScoped<IRegimenLaboralService, RegimenLaboralService>();
 builder.Services.AddScoped<IActividadService, ActividadService>();
 builder.Services.AddScoped<IFeriadoService, FeriadoService>();
+builder.Services.AddScoped<IConceptoLiquidacionService, ConceptoLiquidacionService>();
+builder.Services.AddScoped<INovedadService, NovedadService>();
 
 // Registrar servicios del módulo de liquidación
 builder.Services.AddLiquidacionServices();
@@ -117,6 +119,10 @@ if (app.Environment.IsDevelopment())
                 context.Database.Migrate();
                 app.Logger.LogInformation("Migraciones aplicadas exitosamente");
             }
+            
+            // Crear usuarios de prueba si no existen
+            var authService = services.GetRequiredService<IAuthService>();
+            await SeedTestUsersAsync(context, authService, app.Logger);
         }
         catch (Exception ex)
         {
@@ -129,3 +135,73 @@ app.Logger.LogInformation("Aplicación iniciada correctamente");
 app.Logger.LogInformation("Entorno: {Environment}", app.Environment.EnvironmentName);
 
 app.Run();
+
+// ============================================
+// Método para crear usuarios de prueba
+// ============================================
+static async Task SeedTestUsersAsync(ApplicationDbContext context, IAuthService authService, ILogger logger)
+{
+    try
+    {
+        // Verificar si ya existen usuarios de prueba
+        var existingTestUser = await context.Usuarios
+            .FirstOrDefaultAsync(u => u.Email == "admin@test.com");
+            
+        if (existingTestUser != null)
+        {
+            logger.LogInformation("Usuarios de prueba ya existen");
+            return;
+        }
+        
+        logger.LogInformation("Creando usuarios de prueba...");
+        
+        // Obtener IDs de roles
+        var roles = await context.Roles.ToDictionaryAsync(r => r.Nombre, r => r.Id);
+        
+        if (!roles.Any())
+        {
+            logger.LogWarning("No hay roles en la base de datos. Ejecuta el script SeedData.sql primero");
+            return;
+        }
+        
+        var testUsers = new[]
+        {
+            new { Email = "admin@test.com", Password = "Test123!", Nombre = "Admin", Apellido = "Prueba", RolNombre = "Administrador" },
+            new { Email = "supervisor@test.com", Password = "Test123!", Nombre = "Supervisor", Apellido = "Prueba", RolNombre = "Supervisor" },
+            new { Email = "operador@test.com", Password = "Test123!", Nombre = "Operador", Apellido = "Prueba", RolNombre = "Operador" },
+            new { Email = "consulta@test.com", Password = "Test123!", Nombre = "Usuario", Apellido = "Consulta", RolNombre = "Consulta" }
+        };
+        
+        foreach (var testUser in testUsers)
+        {
+            if (!roles.ContainsKey(testUser.RolNombre))
+            {
+                logger.LogWarning($"Rol '{testUser.RolNombre}' no encontrado");
+                continue;
+            }
+            
+            var usuario = new GestorNomina.Web.Models.Entities.Usuario
+            {
+                Email = testUser.Email,
+                PasswordHash = authService.HashPassword(testUser.Password),
+                Nombre = testUser.Nombre,
+                Apellido = testUser.Apellido,
+                RolId = roles[testUser.RolNombre],
+                Activo = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            
+            context.Usuarios.Add(usuario);
+            logger.LogInformation($"Usuario creado: {testUser.Email}");
+        }
+        
+        await context.SaveChangesAsync();
+        logger.LogInformation("✓ Usuarios de prueba creados exitosamente");
+        logger.LogInformation("Contraseña para todos: Test123!");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al crear usuarios de prueba");
+    }
+}

@@ -30,6 +30,9 @@
                         <tr>
                             <th>Código</th>
                             <th>Nombre</th>
+                            <th>Hs Normales Máx</th>
+                            <th>Hs 50% Máx</th>
+                            <th>Hs 100% Máx</th>
                             <th>Estado</th>
                             <th class="w-1">Acciones</th>
                         </tr>
@@ -40,6 +43,36 @@
                             <tr>
                                 <td><strong>@convenio.Codigo</strong></td>
                                 <td>@convenio.Nombre</td>
+                                <td>
+                                    @if (convenio.HsNormalesMax.HasValue)
+                                    {
+                                        <span class="badge bg-blue-lt">@convenio.HsNormalesMax.Value.ToString("N2") hs</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (convenio.Hs50Max.HasValue)
+                                    {
+                                        <span class="badge bg-yellow-lt">@convenio.Hs50Max.Value.ToString("N2") hs</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (convenio.Hs100Max.HasValue)
+                                    {
+                                        <span class="badge bg-red-lt">@convenio.Hs100Max.Value.ToString("N2") hs</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
                                 <td>
                                     @if (convenio.Activo)
                                     {

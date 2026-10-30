@@ -55,15 +55,21 @@ public class StepAgregadorHoras : IPayrollStep
 
             if (esSabado)
             {
-                // Sábado: hasta 4hs son HSEXT (50%), el resto HS100
+                // Sábado: 0-4hs HSNOR, 4-6hs HSEXT (50%), 6+ HS100
                 if (horasTotalesDia <= 4)
                 {
                     context.HSNOR += horasTotalesDia;
                 }
+                else if (horasTotalesDia <= 6)
+                {
+                    context.HSNOR += 4;
+                    context.HSEXT += (horasTotalesDia - 4);
+                }
                 else
                 {
                     context.HSNOR += 4;
-                    context.HS100 += (horasTotalesDia - 4);
+                    context.HSEXT += 2;
+                    context.HS100 += (horasTotalesDia - 6);
                 }
 
                 totalHoras += horasTotalesDia;

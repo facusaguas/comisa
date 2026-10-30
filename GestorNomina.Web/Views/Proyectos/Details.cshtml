@@ -62,6 +62,20 @@
                                 </div>
                             </div>
                             <div class="datagrid-item">
+                                <div class="datagrid-title">Premio Final de Obra</div>
+                                <div class="datagrid-content">
+                                    @if (Model.PremioFinalObra.HasValue && Model.PremioFinalObra.Value > 0)
+                                    {
+                                        <strong class="text-green">@Model.PremioFinalObra.Value.ToString("C2")</strong>
+                                        <div class="small text-muted">Se paga con compensación especial (14 días roster)</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No configurado</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
                                 <div class="datagrid-title">Estado</div>
                                 <div class="datagrid-content">
                                     @if (Model.Activo)

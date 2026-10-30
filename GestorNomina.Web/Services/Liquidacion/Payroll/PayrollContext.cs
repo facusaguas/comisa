@@ -12,6 +12,7 @@ public class PayrollContext
     public string Periodo { get; set; } = string.Empty;
     public int Quincena { get; set; }
     public List<HoraRegistroAprobado> Registros { get; set; } = new();
+    public List<Novedad> Novedades { get; set; } = new();
 
     // Totalizadores de Horas
     public decimal HSNOR { get; set; } // Horas Normales

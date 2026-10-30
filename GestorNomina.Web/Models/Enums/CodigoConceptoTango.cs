@@ -16,12 +16,19 @@ public enum CodigoConceptoTango
     Presentismo = 1020,
     AdicionalMontajeFenix = 1025,
     FeriadoLicencia = 1030,
+    Enfermedad = 1031,
+    CompensacionEspecial = 1033,
     BonificacionEspecialNeto = 1050,
+    PlusElectrico = 1090,
+
+    // CONCEPTOS NO REMUNERATIVOS
+    PremioFinalObra = 1034,
 
     // DEDUCCIONES
     Jubilacion = 5001,
     Ley19032 = 5002,
     ObraSocial = 5003,
     CuotaSindical = 5004,
-    SeguroDeVida = 5010
+    SeguroDeVida = 5010,
+    Embargo = 5011
 }

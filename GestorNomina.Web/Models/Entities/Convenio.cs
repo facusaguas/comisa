@@ -26,6 +26,15 @@ public class Convenio
     [Column("activo")]
     public bool Activo { get; set; } = true;
 
+    [Column("hs_normales_max")]
+    public decimal? HsNormalesMax { get; set; }
+
+    [Column("hs_50_max")]
+    public decimal? Hs50Max { get; set; }
+
+    [Column("hs_100_max")]
+    public decimal? Hs100Max { get; set; }
+
     // Navigation Properties
     public virtual ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
     public virtual ICollection<Empleado> Empleados { get; set; } = new List<Empleado>();

@@ -35,6 +35,69 @@
                                 <span asp-validation-for="Nombre" class="text-danger"></span>
                             </div>
 
+                            <hr class="my-4" />
+                            <h3 class="card-title mb-3">Límites de Horas (Quincenal)</h3>
+                            <div class="text-muted small mb-3">
+                                Configure los topes máximos de horas que se pueden agregar al ajustar el neto convenido
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Horas Normales Máx
+                                            <span class="form-label-description">Opcional</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="HsNormalesMax" class="form-control" type="number" step="0.5" min="0" placeholder="Ej: 88" />
+                                            <span class="input-group-text">hs</span>
+                                        </div>
+                                        <small class="form-hint">Máximo de horas normales por quincena</small>
+                                        <span asp-validation-for="HsNormalesMax" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Horas Extras 50% Máx
+                                            <span class="form-label-description">Opcional</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="Hs50Max" class="form-control" type="number" step="0.5" min="0" placeholder="Ej: 24" />
+                                            <span class="input-group-text">hs</span>
+                                        </div>
+                                        <small class="form-hint">Máximo de horas extras 50% por quincena</small>
+                                        <span asp-validation-for="Hs50Max" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Horas Extras 100% Máx
+                                            <span class="form-label-description">Opcional</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="Hs100Max" class="form-control" type="number" step="0.5" min="0" placeholder="Ej: 12" />
+                                            <span class="input-group-text">hs</span>
+                                        </div>
+                                        <small class="form-hint">Máximo de horas extras 100% por quincena</small>
+                                        <span asp-validation-for="Hs100Max" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12.01" y2="8" /><polyline points="11 12 12 12 12 16 13 16" /></svg>
+                                <div>
+                                    <strong>Ejemplo UOCRA:</strong> 88 hs normales, 24 hs extras 50%, 12 hs extras 100%.
+                                    Estos límites se usan en el ajuste automático del neto convenido.
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
                             <div class="mb-3">
                                 <label class="form-check">
                                     <input asp-for="Activo" class="form-check-input" type="checkbox" />
