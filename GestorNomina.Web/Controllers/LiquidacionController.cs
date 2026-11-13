@@ -1,6 +1,7 @@
 using GestorNomina.Web.Data;
 using GestorNomina.Web.Filters;
 using GestorNomina.Web.Models.Entities;
+using GestorNomina.Web.Models.Enums;
 using GestorNomina.Web.Models.ViewModels;
 using GestorNomina.Web.Services.Liquidacion;
 using GestorNomina.Web.Services.Liquidacion.Payroll;
@@ -709,4 +710,301 @@ public class LiquidacionController : BaseController
         return View(disciplina);
     }
     #endregion
+
+    // ==========================================
+    // EDICIÓN DE RECIBOS
+    // ==========================================
+
+    #region Edición de Recibos
+
+    /// <summary>
+    /// API: Obtiene configuración de editabilidad para un recibo
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> ConfiguracionEdicion(int reciboId)
+    {
+        var recibo = await _context.Recibos
+            .Include(r => r.Empleado)
+            .Include(r => r.Detalles)
+                .ThenInclude(d => d.Concepto)
+            .FirstOrDefaultAsync(r => r.Id == reciboId);
+
+        if (recibo == null)
+            return NotFound();
+
+        var config = new
+        {
+            modoEdicion = recibo.ModoEdicion,
+            editadoPor = recibo.EditadoPorUsuario != null 
+                ? $"{recibo.EditadoPorUsuario.Nombre} {recibo.EditadoPorUsuario.Apellido}"
+                : null,
+            fechaEdicion = recibo.FechaUltimaEdicion,
+            conceptosEditables = recibo.Detalles
+                .Where(d => d.Concepto.EsEditable)
+                .Select(d => new {
+                    detalleId = d.Id,
+                    conceptoId = d.ConceptoId,
+                    codigo = d.Concepto.Codigo,
+                    nombre = d.Concepto.Nombre,
+                    unidades = d.Unidades,
+                    valorUnitario = d.ValorUnitario,
+                    subtotal = d.Subtotal,
+                    editadoManualmente = d.EditadoManualmente,
+                    valorOriginal = d.ValorOriginal
+                }),
+            conceptosEliminables = recibo.Detalles
+                .Where(d => !d.Concepto.EsObligatorio)
+                .Select(d => d.Id)
+        };
+
+        return Json(config);
+    }
+
+    /// <summary>
+    /// API: Recalcula el recibo desde horas editadas
+    /// </summary>
+    [HttpPut]
+    public async Task<IActionResult> RecalcularDesdeHoras(int reciboId, [FromBody] EditarHorasRequest request)
+    {
+        try
+        {
+            var recalculator = new PayrollRecalculator(_context, new CatalogResolver(_context));
+            var recibo = await recalculator.RecalcularDesdeHorasAsync(
+                reciboId,
+                request.Hsnor,
+                request.Hsext,
+                request.Hs100,
+                request.Hsnoct,
+                request.Hsnoct50,
+                request.Hsnoct100,
+                GetCurrentUserId()
+            );
+
+            TempData["SuccessMessage"] = "Recibo recalculado correctamente";
+            return Json(new { success = true, reciboId = recibo.Id });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// API: Agrega un nuevo concepto al recibo
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> AgregarConcepto(int reciboId, [FromBody] AgregarConceptoRequest request)
+    {
+        try
+        {
+            var recalculator = new PayrollRecalculator(_context, new CatalogResolver(_context));
+            var detalle = await recalculator.AgregarConceptoAsync(
+                reciboId,
+                request.ConceptoId,
+                request.Unidades,
+                request.ValorUnitario,
+                GetCurrentUserId()
+            );
+
+            // Obtener recibo actualizado para calcular totales
+            var recibo = await _context.Recibos
+                .Include(r => r.Detalles)
+                    .ThenInclude(d => d.Concepto)
+                .FirstOrDefaultAsync(r => r.Id == reciboId);
+
+            if (recibo == null)
+            {
+                return NotFound(new { mensaje = "Recibo no encontrado" });
+            }
+
+            // Calcular totales por tipo
+            var totalRemunerativo = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.REMUNERATIVO)
+                .Sum(d => d.Subtotal);
+
+            var totalNoRemunerativo = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.NO_REMUNERATIVO)
+                .Sum(d => d.Subtotal);
+
+            var totalDeducciones = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.DEDUCCION)
+                .Sum(d => d.Subtotal);
+
+            var totalBruto = totalRemunerativo + totalNoRemunerativo;
+            var totalNeto = totalBruto - totalDeducciones;
+
+            return Json(new
+            {
+                success = true,
+                mensaje = "Concepto agregado correctamente",
+                detalleId = detalle.Id,
+                totales = new
+                {
+                    totalRemunerativo,
+                    totalNoRemunerativo,
+                    totalDeducciones,
+                    totalBruto,
+                    totalNeto
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// API: Elimina un concepto del recibo
+    /// </summary>
+    [HttpDelete]
+    public async Task<IActionResult> EliminarConcepto(int reciboId, int detalleId)
+    {
+        try
+        {
+            var recalculator = new PayrollRecalculator(_context, new CatalogResolver(_context));
+            await recalculator.EliminarConceptoAsync(reciboId, detalleId, GetCurrentUserId());
+
+            // Obtener recibo actualizado para calcular totales
+            var recibo = await _context.Recibos
+                .Include(r => r.Detalles)
+                    .ThenInclude(d => d.Concepto)
+                .FirstOrDefaultAsync(r => r.Id == reciboId);
+
+            if (recibo == null)
+            {
+                return NotFound(new { mensaje = "Recibo no encontrado" });
+            }
+
+            // Calcular totales por tipo
+            var totalRemunerativo = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.REMUNERATIVO)
+                .Sum(d => d.Subtotal);
+
+            var totalNoRemunerativo = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.NO_REMUNERATIVO)
+                .Sum(d => d.Subtotal);
+
+            var totalDeducciones = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.DEDUCCION)
+                .Sum(d => d.Subtotal);
+
+            var totalBruto = totalRemunerativo + totalNoRemunerativo;
+            var totalNeto = totalBruto - totalDeducciones;
+
+            return Json(new
+            {
+                success = true,
+                mensaje = "Concepto eliminado correctamente",
+                totales = new
+                {
+                    totalRemunerativo,
+                    totalNoRemunerativo,
+                    totalDeducciones,
+                    totalBruto,
+                    totalNeto
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// API: Modifica unidades/valor de un concepto
+    /// </summary>
+    [HttpPut]
+    public async Task<IActionResult> ModificarConcepto(int reciboId, int detalleId, [FromBody] ModificarConceptoRequest request)
+    {
+        try
+        {
+            var recalculator = new PayrollRecalculator(_context, new CatalogResolver(_context));
+            var detalle = await recalculator.ModificarConceptoAsync(
+                reciboId,
+                detalleId,
+                request.Unidades,
+                request.ValorUnitario,
+                GetCurrentUserId()
+            );
+
+            // Obtener recibo actualizado para calcular totales
+            var recibo = await _context.Recibos
+                .Include(r => r.Detalles)
+                    .ThenInclude(d => d.Concepto)
+                .FirstOrDefaultAsync(r => r.Id == reciboId);
+
+            if (recibo == null)
+            {
+                return NotFound(new { mensaje = "Recibo no encontrado" });
+            }
+
+            // Calcular totales por tipo
+            var totalRemunerativo = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.REMUNERATIVO)
+                .Sum(d => d.Subtotal);
+
+            var totalNoRemunerativo = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.NO_REMUNERATIVO)
+                .Sum(d => d.Subtotal);
+
+            var totalDeducciones = recibo.Detalles
+                .Where(d => d.Concepto.TipoConcepto == TipoConcepto.DEDUCCION)
+                .Sum(d => d.Subtotal);
+
+            var totalBruto = totalRemunerativo + totalNoRemunerativo;
+            var totalNeto = totalBruto - totalDeducciones;
+
+            return Json(new
+            {
+                success = true,
+                unidades = detalle.Unidades,
+                valorUnitario = detalle.ValorUnitario,
+                subtotal = detalle.Subtotal,
+                editadoManualmente = detalle.EditadoManualmente,
+                totales = new
+                {
+                    totalRemunerativo,
+                    totalNoRemunerativo,
+                    totalDeducciones,
+                    totalBruto,
+                    totalNeto
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
+    #endregion
+}
+
+// ==========================================
+// REQUEST MODELS
+// ==========================================
+
+public class EditarHorasRequest
+{
+    public decimal Hsnor { get; set; }
+    public decimal Hsext { get; set; }
+    public decimal Hs100 { get; set; }
+    public decimal Hsnoct { get; set; }
+    public decimal Hsnoct50 { get; set; }
+    public decimal Hsnoct100 { get; set; }
+}
+
+public class AgregarConceptoRequest
+{
+    public int ConceptoId { get; set; }
+    public decimal Unidades { get; set; }
+    public decimal? ValorUnitario { get; set; }
+}
+
+public class ModificarConceptoRequest
+{
+    public decimal Unidades { get; set; }
+    public decimal? ValorUnitario { get; set; }
 }

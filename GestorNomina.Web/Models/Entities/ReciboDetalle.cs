@@ -32,6 +32,19 @@ public class ReciboDetalle
     [Precision(12, 2)]
     public decimal Subtotal { get; set; }
 
+    /// <summary>
+    /// Indica si este detalle fue editado manualmente por un usuario
+    /// </summary>
+    [Column("editado_manualmente")]
+    public bool EditadoManualmente { get; set; }
+
+    /// <summary>
+    /// Valor original del subtotal antes de editar (para auditoría)
+    /// </summary>
+    [Column("valor_original")]
+    [Precision(12, 2)]
+    public decimal? ValorOriginal { get; set; }
+
     // Navigation Properties
     [ForeignKey("ReciboId")]
     public virtual Recibo Recibo { get; set; } = null!;

@@ -28,6 +28,18 @@ public class ConceptoLiquidacion
     [Column("tipo_concepto")]
     public TipoConcepto TipoConcepto { get; set; }
 
+    /// <summary>
+    /// Indica si el concepto es obligatorio (no se puede eliminar del recibo)
+    /// </summary>
+    [Column("es_obligatorio")]
+    public bool EsObligatorio { get; set; }
+
+    /// <summary>
+    /// Indica si el concepto es editable (se pueden modificar unidades/valor unitario)
+    /// </summary>
+    [Column("es_editable")]
+    public bool EsEditable { get; set; }
+
     // Navigation Properties
     public virtual ICollection<ReciboDetalle> ReciboDetalles { get; set; } = new List<ReciboDetalle>();
 }

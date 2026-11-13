@@ -118,6 +118,14 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<bool>("EsEditable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("es_editable");
+
+                    b.Property<bool>("EsObligatorio")
+                        .HasColumnType("boolean")
+                        .HasColumnName("es_obligatorio");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -154,6 +162,18 @@ namespace GestorNomina.Web.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
+
+                    b.Property<decimal?>("Hs100Max")
+                        .HasColumnType("numeric")
+                        .HasColumnName("hs_100_max");
+
+                    b.Property<decimal?>("Hs50Max")
+                        .HasColumnType("numeric")
+                        .HasColumnName("hs_50_max");
+
+                    b.Property<decimal?>("HsNormalesMax")
+                        .HasColumnType("numeric")
+                        .HasColumnName("hs_normales_max");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -725,6 +745,10 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("numeric(12,4)")
                         .HasColumnName("diferencia_control");
 
+                    b.Property<int?>("EditadoPorUsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("editado_por_usuario_id");
+
                     b.Property<int>("EmpleadoId")
                         .HasColumnType("integer")
                         .HasColumnName("empleado_id");
@@ -732,6 +756,16 @@ namespace GestorNomina.Web.Migrations
                     b.Property<DateTime>("FechaCalculo")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_calculo");
+
+                    b.Property<DateTime?>("FechaUltimaEdicion")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_ultima_edicion");
+
+                    b.Property<string>("ModoEdicion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("modo_edicion");
 
                     b.Property<decimal?>("NetoConvenidoObjetivo")
                         .HasPrecision(12, 2)
@@ -741,6 +775,10 @@ namespace GestorNomina.Web.Migrations
                     b.Property<int>("NetoRedondeado")
                         .HasColumnType("integer")
                         .HasColumnName("neto_redondeado");
+
+                    b.Property<string>("ObservacionesEdicion")
+                        .HasColumnType("text")
+                        .HasColumnName("observaciones_edicion");
 
                     b.Property<string>("Periodo")
                         .IsRequired()
@@ -769,6 +807,8 @@ namespace GestorNomina.Web.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EditadoPorUsuarioId");
+
                     b.HasIndex("EmpleadoId", "Periodo", "Quincena");
 
                     b.ToTable("recibos");
@@ -787,6 +827,10 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("concepto_id");
 
+                    b.Property<bool>("EditadoManualmente")
+                        .HasColumnType("boolean")
+                        .HasColumnName("editado_manualmente");
+
                     b.Property<int>("ReciboId")
                         .HasColumnType("integer")
                         .HasColumnName("recibo_id");
@@ -800,6 +844,11 @@ namespace GestorNomina.Web.Migrations
                         .HasPrecision(8, 2)
                         .HasColumnType("numeric(8,2)")
                         .HasColumnName("unidades");
+
+                    b.Property<decimal?>("ValorOriginal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("valor_original");
 
                     b.Property<decimal?>("ValorUnitario")
                         .HasPrecision(12, 4)
@@ -1314,11 +1363,17 @@ namespace GestorNomina.Web.Migrations
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Recibo", b =>
                 {
+                    b.HasOne("GestorNomina.Web.Models.Entities.Usuario", "EditadoPorUsuario")
+                        .WithMany()
+                        .HasForeignKey("EditadoPorUsuarioId");
+
                     b.HasOne("GestorNomina.Web.Models.Entities.Empleado", "Empleado")
                         .WithMany("Recibos")
                         .HasForeignKey("EmpleadoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("EditadoPorUsuario");
 
                     b.Navigation("Empleado");
                 });

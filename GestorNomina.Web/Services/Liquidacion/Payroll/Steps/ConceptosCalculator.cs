@@ -103,44 +103,20 @@ public class ConceptosCalculator
         }
 
         // 4. Adicional Montaje UOCRA (Fenix) 25%
-        var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
-        if (tieneFinRoster)
+        var baseAdicional = sueldoBasico + hsNocturnas;
+        if (baseAdicional > 0)
         {
-            bool yaPagadoEsteMes = false;
-            
-            if (_context != null)
-            {
-                yaPagadoEsteMes = await _context.ReciboDetalles
-                    .Include(rd => rd.Recibo)
-                    .Include(rd => rd.Concepto)
-                    .AnyAsync(rd => rd.Recibo.EmpleadoId == context.Empleado.Id
-                        && rd.Recibo.Periodo == context.Periodo
-                        && rd.Concepto.Codigo == ((int)CodigoConceptoTango.AdicionalMontajeFenix).ToString()
-                        && rd.Recibo.Quincena != context.Quincena);
-            }
-
-            if (!yaPagadoEsteMes)
-            {
-                var baseAdicional = sueldoBasico + hsNocturnas;
-                if (baseAdicional > 0)
-                {
-                    var adicionalMontaje = baseAdicional * 0.25m;
-                    ActualizarOAgregarItem(
-                        context.ItemsRemunerativos,
-                        CodigoConceptoTango.AdicionalMontajeFenix,
-                        1,
-                        adicionalMontaje,
-                        adicionalMontaje,
-                        "Adicional Montaje UOCRA (Fenix) 25%"
-                    );
-                }
-            }
+            var adicionalMontaje = baseAdicional * 0.25m;
+            ActualizarOAgregarItem(
+                context.ItemsRemunerativos,
+                CodigoConceptoTango.AdicionalMontajeFenix,
+                1,
+                adicionalMontaje,
+                adicionalMontaje,
+                "Adicional Montaje UOCRA (Fenix) 25%"
+            );
         }
-        else
-        {
-            EliminarItem(context.ItemsRemunerativos, CodigoConceptoTango.AdicionalMontajeFenix);
-        }
-
+       
         // 5. Compensación Especial (1033)
         decimal diasRoster = context.DIAS;
         
@@ -156,8 +132,9 @@ public class ConceptosCalculator
                 diasRoster += reciboQuincena1.DiasTrabajados;
             }
         }
-        
-        if (diasRoster >= 14)
+
+        var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
+        if (tieneFinRoster)
         {
             var compensacion = valorHora * 40 * 1.45m;
             ActualizarOAgregarItem(

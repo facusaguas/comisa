@@ -91,7 +91,7 @@ public class StepAgregadorHoras : IPayrollStep
         }
 
         // Calcular días trabajados
-        context.DIAS = totalHoras > 0 ? totalHoras / DIVISOR_JORNADA : 0;
+        context.DIAS = registrosPorFecha.Count();
 
         return Task.CompletedTask;
     }

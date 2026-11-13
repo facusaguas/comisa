@@ -166,62 +166,23 @@ public class StepConceptosRemunerativos : IPayrollStep
         }
 
         // 10. Adicional Montaje UOCRA (Fenix) 25% (1025): (SueldoBasico + Nocturnas) * 0.25
-        // Solo si tiene novedad FinRoster en el periodo/quincena
-        var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
-        if (tieneFinRoster)
+        var baseAdicional = sueldoBasico + hsNocturnas;
+        if (baseAdicional > 0)
         {
-            // Validar que no se haya pagado ya este mes
-            var fechaPeriodo = DateTime.Parse(context.Periodo + "-01");
-            bool yaPagadoEsteMes = false;
-            
-            if (_context != null)
+            var adicionalMontaje = baseAdicional * 0.25m;
+            context.ItemsRemunerativos.Add(new ItemLiquidacion
             {
-                yaPagadoEsteMes = await _context.ReciboDetalles
-                    .Include(rd => rd.Recibo)
-                    .Include(rd => rd.Concepto)
-                    .AnyAsync(rd => rd.Recibo.EmpleadoId == context.Empleado.Id
-                        && rd.Recibo.Periodo == context.Periodo
-                        && rd.Concepto.Codigo == ((int)CodigoConceptoTango.AdicionalMontajeFenix).ToString()
-                        && rd.Recibo.Quincena != context.Quincena); // Diferente quincena
-            }
-
-            if (!yaPagadoEsteMes)
-            {
-                var baseAdicional = sueldoBasico + hsNocturnas;
-                if (baseAdicional > 0)
-                {
-                    var adicionalMontaje = baseAdicional * 0.25m;
-                    context.ItemsRemunerativos.Add(new ItemLiquidacion
-                    {
-                        Concepto = CodigoConceptoTango.AdicionalMontajeFenix,
-                        Unidades = 1,
-                        ValorUnitario = adicionalMontaje,
-                        Subtotal = adicionalMontaje,
-                        Descripcion = "Adicional Montaje UOCRA (Fenix) 25%"
-                    });
-                }
-            }
+                Concepto = CodigoConceptoTango.AdicionalMontajeFenix,
+                Unidades = 1,
+                ValorUnitario = adicionalMontaje,
+                Subtotal = adicionalMontaje,
+                Descripcion = "Adicional Montaje UOCRA (Fenix) 25%"
+            });
         }
 
         // 11. Compensación Especial (1033): ValorHora * 40
-        // Se paga si trabajó >= 14 días en el roster (sumando quincena anterior y actual)
-        decimal diasRoster = context.DIAS;
-        
-        // Sumar días de la quincena anterior si estamos en quincena 2
-        if (context.Quincena == 2 && _context != null)
-        {
-            var reciboQuincena1 = await _context.Recibos
-                .FirstOrDefaultAsync(r => r.EmpleadoId == context.Empleado.Id
-                    && r.Periodo == context.Periodo
-                    && r.Quincena == 1);
-            
-            if (reciboQuincena1 != null)
-            {
-                diasRoster += reciboQuincena1.DiasTrabajados;
-            }
-        }
-        
-        if (diasRoster >= 14)
+        var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
+        if (tieneFinRoster)
         {
             var compensacion = valorHora * 40 * 1.45m;
             context.ItemsRemunerativos.Add(new ItemLiquidacion
