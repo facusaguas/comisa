@@ -385,7 +385,7 @@ class ReciboEditor {
 
         const totales = resultado.totales;
 
-        // Actualizar subtotales por tipo
+        // Actualizar subtotales por tipo (en la tabla unificada)
         const totalRemunerativo = document.getElementById('totalRemunerativo');
         if (totalRemunerativo) {
             totalRemunerativo.textContent = '$' + totales.totalRemunerativo.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -394,6 +394,12 @@ class ReciboEditor {
         const totalNoRemunerativo = document.getElementById('totalNoRemunerativo');
         if (totalNoRemunerativo) {
             totalNoRemunerativo.textContent = '$' + totales.totalNoRemunerativo.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        const totalHaberes = document.getElementById('totalHaberes');
+        if (totalHaberes) {
+            const sumaHaberes = totales.totalRemunerativo + totales.totalNoRemunerativo;
+            totalHaberes.textContent = '$' + sumaHaberes.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         }
 
         const totalDeducciones = document.getElementById('totalDeducciones');

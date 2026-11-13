@@ -29,9 +29,20 @@
 .tabla-remunerativos .input-valor-unitario,
 .tabla-no-remunerativos .input-unidades,
 .tabla-no-remunerativos .input-valor-unitario,
+.tabla-haberes .input-unidades,
+.tabla-haberes .input-valor-unitario,
 .tabla-deducciones .input-unidades,
 .tabla-deducciones .input-valor-unitario {
     margin: 0 auto;
+}
+
+/* Badges de tipo de concepto */
+.tabla-haberes .badge.bg-success {
+    background-color: #2fb344 !important;
+}
+
+.tabla-haberes .badge.bg-info {
+    background-color: #4299e1 !important;
 }
 
 /* Botones de acción en filas */

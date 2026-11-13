@@ -12,15 +12,18 @@ public class ProyectosController : BaseController
 {
     private readonly IProyectoService _proyectoService;
     private readonly IRegimenLaboralService _regimenService;
+    private readonly IExcelExportService _excelExportService;
     private readonly ILogger<ProyectosController> _logger;
 
     public ProyectosController(
         IProyectoService proyectoService,
         IRegimenLaboralService regimenService,
+        IExcelExportService excelExportService,
         ILogger<ProyectosController> logger)
     {
         _proyectoService = proyectoService;
         _regimenService = regimenService;
+        _excelExportService = excelExportService;
         _logger = logger;
     }
 
@@ -233,6 +236,49 @@ public class ProyectosController : BaseController
             _logger.LogError(ex, "Error al cambiar estado del proyecto {ProyectoId}", id);
             SetErrorMessage("Error al cambiar el estado del proyecto");
             return RedirectToAction(nameof(Index));
+        }
+    }
+
+    /// <summary>
+    /// Obtiene estadísticas del proyecto (cantidad de empleados por tipo de contratación)
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetEstadisticasProyecto(int id)
+    {
+        try
+        {
+            var estadisticas = await _proyectoService.GetEstadisticasProyectoAsync(id);
+            return Json(estadisticas);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener estadísticas del proyecto {ProyectoId}", id);
+            return Json(new { success = false, message = "Error al obtener estadísticas" });
+        }
+    }
+
+    /// <summary>
+    /// Genera y descarga un archivo Excel con los empleados del proyecto para una quincena específica
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> DescargarExcelEmpleados(int proyectoId, int mes, int anio, int quincena)
+    {
+        try
+        {
+            var bytes = await _excelExportService.GenerarExcelEmpleadosProyectoAsync(proyectoId, mes, anio, quincena);
+            
+            var proyecto = await _proyectoService.GetByIdAsync(proyectoId);
+            var nombreMes = new System.Globalization.CultureInfo("es-ES")
+                .DateTimeFormat.GetMonthName(mes);
+            var nombreArchivo = $"Empleados_{proyecto?.Codigo ?? "Proyecto"}_{nombreMes}_{anio}_Q{quincena}.xlsx";
+
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nombreArchivo);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al descargar Excel de empleados para proyecto {ProyectoId}", proyectoId);
+            SetErrorMessage("Error al generar el archivo Excel");
+            return RedirectToAction(nameof(Details), new { id = proyectoId });
         }
     }
 

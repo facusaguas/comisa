@@ -369,10 +369,12 @@ public class LiquidacionController : BaseController
                 Legajo = g.Key.Legajo,
                 Apellido = g.Key.Apellido,
                 Nombre = g.Key.Nombre,
-                HorasPorDia = g.ToDictionary(
-                    r => r.Fecha.Day,
-                    r => r.HorasFinales
-                )
+                HorasPorDia = g
+                    .GroupBy(r => r.Fecha.Day)
+                    .ToDictionary(
+                        dayGroup => dayGroup.Key,
+                        dayGroup => dayGroup.Sum(r => r.HorasFinales)
+                    )
             })
             .OrderBy(e => e.Apellido)
             .ThenBy(e => e.Nombre)
@@ -485,8 +487,12 @@ public class LiquidacionController : BaseController
     {
         var recibo = await _context.Recibos
             .Include(r => r.Empleado)
+                .ThenInclude(e => e.Categoria)
+            .Include(r => r.Empleado)
+                .ThenInclude(e => e.Convenio)
             .Include(r => r.Detalles)
                 .ThenInclude(d => d.Concepto)
+            .Include(r => r.EditadoPorUsuario)
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (recibo == null)

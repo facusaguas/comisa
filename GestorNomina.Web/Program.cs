@@ -46,6 +46,7 @@ builder.Services.AddScoped<IActividadService, ActividadService>();
 builder.Services.AddScoped<IFeriadoService, FeriadoService>();
 builder.Services.AddScoped<IConceptoLiquidacionService, ConceptoLiquidacionService>();
 builder.Services.AddScoped<INovedadService, NovedadService>();
+builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 
 // Registrar servicios del módulo de liquidación
 builder.Services.AddLiquidacionServices();

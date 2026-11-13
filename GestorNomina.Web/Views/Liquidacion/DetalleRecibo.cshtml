@@ -5,6 +5,7 @@
     ViewData["Title"] = $"Recibo - {Model.Empleado.Legajo}";
     var conceptosRemunerativos = Model.Detalles.Where(d => d.Concepto.TipoConcepto == TipoConcepto.REMUNERATIVO).ToList();
     var conceptosNoRemunerativos = Model.Detalles.Where(d => d.Concepto.TipoConcepto == TipoConcepto.NO_REMUNERATIVO).ToList();
+    var haberes = Model.Detalles.Where(d => d.Concepto.TipoConcepto == TipoConcepto.REMUNERATIVO || d.Concepto.TipoConcepto == TipoConcepto.NO_REMUNERATIVO).ToList();
     var deducciones = Model.Detalles.Where(d => d.Concepto.TipoConcepto == TipoConcepto.DEDUCCION).ToList();
     var modoEdicion = Model.ModoEdicion ?? "AUTOMATICO";
 }
@@ -101,20 +102,27 @@
                     </div>
                 </div>
 
-                <!-- Haberes Remunerativos -->
+                <!-- Haberes (Remunerativos y No Remunerativos) -->
                 <div class="table-responsive">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="mb-0">Haberes Remunerativos</h4>
-                        <button type="button" class="btn btn-sm btn-outline-success d-none" id="btnAgregarRemunerativo" data-bs-toggle="modal" data-bs-target="#modalAgregarConcepto" data-tipo="REMUNERATIVO">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                            Agregar Concepto
-                        </button>
+                        <h4 class="mb-0">Haberes</h4>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-success d-none me-2" id="btnAgregarRemunerativo" data-bs-toggle="modal" data-bs-target="#modalAgregarConcepto" data-tipo="REMUNERATIVO">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                                Agregar Remunerativo
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info d-none" id="btnAgregarNoRemunerativo" data-bs-toggle="modal" data-bs-target="#modalAgregarConcepto" data-tipo="NO_REMUNERATIVO">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                                Agregar No Remunerativo
+                            </button>
+                        </div>
                     </div>
-                    <table class="table table-bordered tabla-remunerativos">
+                    <table class="table table-bordered tabla-haberes">
                         <thead>
                             <tr>
                                 <th>Código</th>
                                 <th>Concepto</th>
+                                <th class="text-center" style="width: 100px;">Tipo</th>
                                 <th class="text-center" style="width: 120px;">Unidades</th>
                                 <th class="text-end" style="width: 150px;">Valor Unit.</th>
                                 <th class="text-end" style="width: 150px;">Subtotal</th>
@@ -122,12 +130,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var detalle in conceptosRemunerativos)
+                            @foreach (var detalle in haberes)
                             {
+                                var esRemunerativo = detalle.Concepto.TipoConcepto == TipoConcepto.REMUNERATIVO;
+                                var badgeClass = esRemunerativo ? "bg-success" : "bg-info";
+                                var tipoTexto = esRemunerativo ? "REM" : "NO REM";
+                                
                                 <tr data-detalle-id="@detalle.Id" 
                                     data-concepto-id="@detalle.ConceptoId"
                                     data-es-editable="@detalle.Concepto.EsEditable.ToString().ToLower()"
                                     data-es-obligatorio="@detalle.Concepto.EsObligatorio.ToString().ToLower()"
+                                    data-tipo-concepto="@detalle.Concepto.TipoConcepto"
                                     class="@(detalle.EditadoManualmente ? "detalle-editado" : "")">
                                     <td>
                                         @detalle.Concepto.Codigo
@@ -139,6 +152,9 @@
                                         }
                                     </td>
                                     <td>@detalle.Concepto.Nombre</td>
+                                    <td class="text-center">
+                                        <span class="badge @badgeClass" title="@(esRemunerativo ? "Remunerativo" : "No Remunerativo")">@tipoTexto</span>
+                                    </td>
                                     <td class="text-center">
                                         <span class="valor-display">@detalle.Unidades.ToString("N2")</span>
                                         <input type="number" step="0.5" class="form-control form-control-sm d-none input-unidades" value="@detalle.Unidades" />
@@ -172,104 +188,30 @@
                                     </td>
                                 </tr>
                             }
+                            @if (conceptosRemunerativos.Any())
+                            {
+                                <tr class="table-light">
+                                    <td colspan="5" class="text-end"><strong>Subtotal Remunerativo:</strong></td>
+                                    <td class="text-end"><strong id="totalRemunerativo">$@conceptosRemunerativos.Sum(d => d.Subtotal).ToString("N2")</strong></td>
+                                    <td class="d-none acciones-edicion"></td>
+                                </tr>
+                            }
+                            @if (conceptosNoRemunerativos.Any())
+                            {
+                                <tr class="table-light">
+                                    <td colspan="5" class="text-end"><strong>Subtotal No Remunerativo:</strong></td>
+                                    <td class="text-end"><strong id="totalNoRemunerativo">$@conceptosNoRemunerativos.Sum(d => d.Subtotal).ToString("N2")</strong></td>
+                                    <td class="d-none acciones-edicion"></td>
+                                </tr>
+                            }
                             <tr class="table-active">
-                                <td colspan="4" class="text-end"><strong>Subtotal Remunerativo:</strong></td>
-                                <td class="text-end"><strong id="totalRemunerativo">$@conceptosRemunerativos.Sum(d => d.Subtotal).ToString("N2")</strong></td>
+                                <td colspan="5" class="text-end"><strong>Total Haberes:</strong></td>
+                                <td class="text-end"><strong id="totalHaberes">$@haberes.Sum(d => d.Subtotal).ToString("N2")</strong></td>
                                 <td class="d-none acciones-edicion"></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-
-                @if (conceptosNoRemunerativos.Any() || true) // Siempre mostrar para poder agregar
-                {
-                    <!-- Haberes No Remunerativos -->
-                    <div class="table-responsive mt-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="mb-0">Haberes No Remunerativos</h4>
-                            <button type="button" class="btn btn-sm btn-outline-info d-none" id="btnAgregarNoRemunerativo" data-bs-toggle="modal" data-bs-target="#modalAgregarConcepto" data-tipo="NO_REMUNERATIVO">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                                Agregar Concepto
-                            </button>
-                        </div>
-                        @if (conceptosNoRemunerativos.Any())
-                        {
-                            <table class="table table-bordered tabla-no-remunerativos">
-                                <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Concepto</th>
-                                        <th class="text-center" style="width: 120px;">Unidades</th>
-                                        <th class="text-end" style="width: 150px;">Valor Unit.</th>
-                                        <th class="text-end" style="width: 150px;">Subtotal</th>
-                                        <th class="text-center d-none acciones-edicion" style="width: 100px;">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var detalle in conceptosNoRemunerativos)
-                                    {
-                                        <tr data-detalle-id="@detalle.Id"
-                                            data-concepto-id="@detalle.ConceptoId"
-                                            data-es-editable="@detalle.Concepto.EsEditable.ToString().ToLower()"
-                                            data-es-obligatorio="@detalle.Concepto.EsObligatorio.ToString().ToLower()"
-                                            class="@(detalle.EditadoManualmente ? "detalle-editado" : "")">
-                                            <td>
-                                                @detalle.Concepto.Codigo
-                                                @if (detalle.EditadoManualmente)
-                                                {
-                                                    <span class="badge bg-warning ms-1" title="Editado manualmente">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" /></svg>
-                                                    </span>
-                                                }
-                                            </td>
-                                            <td>@detalle.Concepto.Nombre</td>
-                                            <td class="text-center">
-                                                <span class="valor-display">@detalle.Unidades.ToString("N2")</span>
-                                                <input type="number" step="0.5" class="form-control form-control-sm d-none input-unidades" value="@detalle.Unidades" />
-                                            </td>
-                                            <td class="text-end">
-                                                <span class="valor-display">@(detalle.ValorUnitario.HasValue ? "$" + detalle.ValorUnitario.Value.ToString("N2") : "-")</span>
-                                                <input type="number" step="0.01" class="form-control form-control-sm d-none input-valor-unitario" value="@detalle.ValorUnitario" />
-                                            </td>
-                                            <td class="text-end">
-                                                <strong class="subtotal">$@detalle.Subtotal.ToString("N2")</strong>
-                                            </td>
-                                            <td class="text-center d-none acciones-edicion">
-                                                @if (detalle.Concepto.EsEditable)
-                                                {
-                                                    <button type="button" class="btn btn-sm btn-ghost-primary btn-editar" title="Editar">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" /></svg>
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-ghost-success btn-guardar d-none" title="Guardar">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-ghost-danger btn-cancelar d-none" title="Cancelar">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                                                    </button>
-                                                }
-                                                @if (!detalle.Concepto.EsObligatorio)
-                                                {
-                                                    <button type="button" class="btn btn-sm btn-ghost-danger btn-eliminar" title="Eliminar">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="4" y1="7" x2="20" y2="7" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-                                                    </button>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                    <tr class="table-active">
-                                        <td colspan="4" class="text-end"><strong>Subtotal No Remunerativo:</strong></td>
-                                        <td class="text-end"><strong id="totalNoRemunerativo">$@conceptosNoRemunerativos.Sum(d => d.Subtotal).ToString("N2")</strong></td>
-                                        <td class="d-none acciones-edicion"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        }
-                        else
-                        {
-                            <div class="alert alert-info">No hay conceptos no remunerativos en este recibo.</div>
-                        }
-                    </div>
-                }
 
                 <!-- Deducciones -->
                 <div class="table-responsive mt-4">

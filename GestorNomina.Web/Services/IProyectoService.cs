@@ -18,4 +18,5 @@ public interface IProyectoService
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<List<string>> GetEmpleadosAsignadosAsync(int proyectoId);
     Task<int> GetCantidadEmpleadosAsync(int proyectoId);
+    Task<EstadisticasProyectoViewModel> GetEstadisticasProyectoAsync(int proyectoId);
 }

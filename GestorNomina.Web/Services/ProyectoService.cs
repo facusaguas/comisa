@@ -261,6 +261,44 @@ public class ProyectoService : IProyectoService
             .CountAsync();
     }
 
+    public async Task<EstadisticasProyectoViewModel> GetEstadisticasProyectoAsync(int proyectoId)
+    {
+        try
+        {
+            var proyecto = await _context.Proyectos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == proyectoId);
+
+            if (proyecto == null)
+                throw new Exception("Proyecto no encontrado");
+
+            // Obtener empleados activos del proyecto con su tipo de liquidación
+            var empleadosPorTipo = await _context.Empleados
+                .AsNoTracking()
+                .Include(e => e.TipoLiquidacion)
+                .Where(e => e.ProyectoId == proyectoId && e.Activo)
+                .GroupBy(e => e.TipoLiquidacion != null ? e.TipoLiquidacion.Nombre : "Sin tipo")
+                .Select(g => new { TipoContratacion = g.Key, Cantidad = g.Count() })
+                .ToListAsync();
+
+            var estadisticas = new EstadisticasProyectoViewModel
+            {
+                ProyectoId = proyecto.Id,
+                ProyectoNombre = proyecto.Nombre,
+                ProyectoCodigo = proyecto.Codigo,
+                TotalEmpleados = empleadosPorTipo.Sum(x => x.Cantidad),
+                EmpleadosPorTipoContratacion = empleadosPorTipo.ToDictionary(x => x.TipoContratacion, x => x.Cantidad)
+            };
+
+            return estadisticas;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener estadísticas del proyecto {ProyectoId}", proyectoId);
+            throw;
+        }
+    }
+
     private ProyectoViewModel MapToViewModel(Proyecto proyecto)
     {
         var viewModel = new ProyectoViewModel
