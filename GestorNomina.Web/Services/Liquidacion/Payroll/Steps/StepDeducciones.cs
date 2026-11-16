@@ -63,9 +63,9 @@ public class StepDeducciones : IPayrollStep
         var topeMinimoOS = (176 * valorHoraBasico) * TASA_OBRA_SOCIAL;
         
         // Ajustar al proporcional de la quincena (50% del tope mensual)
-        var topeMinimoQuincenal = topeMinimoOS * 0.5m;
+        //var topeMinimoQuincenal = topeMinimoOS * 0.5m;
         
-        var obraSocial = Math.Max(obraSocialCalculada, topeMinimoQuincenal);
+        var obraSocial = Math.Max(obraSocialCalculada, topeMinimoOS);
         
         context.ItemsDeducciones.Add(new ItemLiquidacion
         {

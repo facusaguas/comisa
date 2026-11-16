@@ -233,7 +233,7 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
                             horas = horasParsed;
                     }
 
-                    if (horas <= 0) continue; // Omitir si no hay horas
+                    //if (horas <= 0) continue; // Omitir si no hay horas
 
                     // Crear registro raw
                     var registroRaw = new HoraRegistroRaw

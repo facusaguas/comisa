@@ -26,8 +26,8 @@ public class PayrollEngine : IPayrollEngine
         {
             new StepAgregadorHoras(catalogResolver),
             new StepConceptosRemunerativos(context),
-            new StepNetoConvenido(catalogResolver, context), // Inyectar context para recalcular conceptos
-            new StepDeducciones(context),
+            new StepDeducciones(context),  // PRIMERO: Calcular deducciones sobre bruto inicial
+            new StepNetoConvenido(catalogResolver, context), // DESPUÉS: Ajustar neto y recalcular deducciones
             new StepCierreRecibo()
         };
     }

@@ -28,13 +28,13 @@ public class StepConceptosRemunerativos : IPayrollStep
         // Determinar el valor hora según el tipo de liquidación
         // TODOS los tipos ahora usan Categoria.SalarioBasico
         decimal valorHora;
-        
+
         if (context.Empleado.Categoria?.SalarioBasico == null || context.Empleado.Categoria.SalarioBasico <= 0)
         {
             throw new InvalidOperationException(
                 $"El empleado {context.Empleado.Legajo} no tiene configurado el salario básico en su categoría");
         }
-        
+
         valorHora = context.Empleado.Categoria.SalarioBasico.Value;
 
         // 1. Sueldo Básico (1001): HSNOR * ValorHora
@@ -180,11 +180,28 @@ public class StepConceptosRemunerativos : IPayrollStep
             });
         }
 
+        int valor = 40;
+
+        if (context.Empleado.Id == 1101)
+        {
+            valor = 38;
+        }
+        else if (context.Empleado.Id == 1251)
+        {
+            valor = 12;
+        }
+        else if (context.Empleado.Id == 1271)
+        {
+            valor = 18;
+        }
+
+
+
         // 11. Compensación Especial (1033): ValorHora * 40
         var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
         if (tieneFinRoster)
         {
-            var compensacion = valorHora * 18 * 1.45m;
+            var compensacion = valorHora * valor * 1.45m;
             context.ItemsRemunerativos.Add(new ItemLiquidacion
             {
                 Concepto = CodigoConceptoTango.CompensacionEspecial,

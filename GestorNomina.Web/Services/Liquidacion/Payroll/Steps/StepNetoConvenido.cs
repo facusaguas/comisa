@@ -46,9 +46,10 @@ public class StepNetoConvenido : IPayrollStep
         var netoObjetivo = context.Empleado.ValorConvenidoDiario.Value * context.DIAS;
         context.NetoConvenidoObjetivo = netoObjetivo;
 
-        // 2. Calcular Neto Provisorio (antes de ajustes)
-        var brutoParcial = context.TotalBrutoRemunerativo;
-        var netoProvisorio = brutoParcial * (1 - COEF_RETENCIONES_LEY);
+        // 2. Calcular Neto Provisorio usando deducciones REALES (no aproximación)
+        var brutoParcial = context.TotalBrutoRemunerativo + context.TotalBrutoNoRemunerativo;
+        var deduccionesReales = context.ItemsDeducciones.Sum(i => i.Subtotal);
+        var netoProvisorio = brutoParcial - deduccionesReales;
 
         // 3. Si ya llegamos al neto objetivo, no hacer nada
         if (netoProvisorio >= netoObjetivo)
@@ -59,7 +60,7 @@ public class StepNetoConvenido : IPayrollStep
         // 4. Intentar ajustar incrementando horas según los límites del convenio
         if (context.Empleado.Convenio != null)
         {
-            var ajustado = TryAjustarHoras(context, netoObjetivo);
+            var ajustado = TryAjustarHoras(context, netoObjetivo, deduccionesReales);
             
             if (ajustado)
             {
@@ -73,8 +74,18 @@ public class StepNetoConvenido : IPayrollStep
                 }
                 
                 // Recalcular neto provisorio después del ajuste de horas Y conceptos
-                brutoParcial = context.TotalBrutoRemunerativo;
-                netoProvisorio = brutoParcial * (1 - COEF_RETENCIONES_LEY);
+                brutoParcial = context.TotalBrutoRemunerativo + context.TotalBrutoNoRemunerativo;
+                
+                // CRÍTICO: Recalcular deducciones sobre el nuevo bruto
+                context.ItemsDeducciones.Clear();
+                if (_context != null)
+                {
+                    var stepDeducciones = new StepDeducciones(_context);
+                    await stepDeducciones.ExecuteAsync(context);
+                }
+                
+                deduccionesReales = context.ItemsDeducciones.Sum(i => i.Subtotal);
+                netoProvisorio = brutoParcial - deduccionesReales;
                 
                 // Si alcanzamos el objetivo con el ajuste de horas, terminar
                 if (netoProvisorio >= netoObjetivo)
@@ -86,7 +97,12 @@ public class StepNetoConvenido : IPayrollStep
 
         // 5. Si aún no llegamos al objetivo, aplicar Bonificación Especial (Grossing-Up)
         var diferenciaNeto = netoObjetivo - netoProvisorio;
-        var ajusteBruto = diferenciaNeto * COEF_GROSSING_UP;
+        
+        // Usar deducciones reales para calcular el grossing-up correctamente
+        // Si la deducción es 30%, el grossing-up debe compensar eso
+        var tasaDeduccion = deduccionesReales > 0 ? (deduccionesReales / brutoParcial) : COEF_RETENCIONES_LEY;
+        var coefGrossingUp = 1 / (1 - tasaDeduccion);
+        var ajusteBruto = diferenciaNeto * coefGrossingUp;
 
         // Agregar la bonificación como ítem remunerativo
         context.ItemsRemunerativos.Add(new ItemLiquidacion
@@ -100,14 +116,22 @@ public class StepNetoConvenido : IPayrollStep
 
         // Recalcular total bruto remunerativo
         context.TotalBrutoRemunerativo = context.ItemsRemunerativos.Sum(i => i.Subtotal);
+        
+        // CRÍTICO: Recalcular deducciones sobre el bruto CON la bonificación
+        context.ItemsDeducciones.Clear();
+        if (_context != null)
+        {
+            var stepDeducciones = new StepDeducciones(_context);
+            await stepDeducciones.ExecuteAsync(context);
+        }
     }
 
     /// <summary>
     /// Intenta ajustar las horas incrementando normales, extras 50% y extras 100%
     /// hasta los límites configurados en el convenio para alcanzar el neto objetivo
-    /// Actualiza tanto los items como las propiedades del contexto (HSNOR, HSEXT, HS100)
+    /// Usa las deducciones REALES para calcular neto provisorio
     /// </summary>
-    private bool TryAjustarHoras(PayrollContext context, decimal netoObjetivo)
+    private bool TryAjustarHoras(PayrollContext context, decimal netoObjetivo, decimal deduccionesReales)
     {
         var convenio = context.Empleado.Convenio;
         if (convenio == null)
@@ -144,9 +168,9 @@ public class StepNetoConvenido : IPayrollStep
         {
             iteracion++;
 
-            // Calcular neto actual
+            // Calcular neto actual usando deducciones REALES
             var brutoActual = context.ItemsRemunerativos.Sum(i => i.Subtotal);
-            var netoActual = brutoActual * (1 - COEF_RETENCIONES_LEY);
+            var netoActual = brutoActual - deduccionesReales;
 
             // Si ya alcanzamos el objetivo, terminar
             if (netoActual >= netoObjetivo)
