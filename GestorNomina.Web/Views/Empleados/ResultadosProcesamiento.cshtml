@@ -1,0 +1,235 @@
+@model List<GestorNomina.Web.Models.ViewModels.ResultadoProcesamentoPdfViewModel>
+
+@{
+    ViewData["Title"] = "Resultados del Procesamiento";
+    var exitosos = Model.Count(r => r.Exitoso);
+    var fallidos = Model.Count(r => !r.Exitoso);
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11l3 3l8 -8"/><path d="M20 12a9 9 0 1 1 -18 0a9 9 0 0 1 18 0z"/></svg>
+                    Resultados del Procesamiento
+                </h2>
+                <div class="text-muted mt-1">@exitosos exitosos, @fallidos errores</div>
+            </div>
+            <div class="col-auto ms-auto">
+                <a asp-action="CargarDesdePDF" class="btn btn-primary">Cargar más empleados</a>
+                <a asp-action="Index" class="btn">Volver a Empleados</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row row-deck row-cards">
+            <!-- Resumen -->
+            <div class="col-12">
+                <div class="row row-cards">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="text-truncate">
+                                    <h3 class="card-title card-title-md">Total Procesados</h3>
+                                </div>
+                                <div class="mt-2 d-flex align-items-baseline">
+                                    <div class="h1">@Model.Count</div>
+                                    <span class="text-muted ms-2">archivos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="text-truncate">
+                                    <h3 class="card-title card-title-md">Exitosos</h3>
+                                </div>
+                                <div class="mt-2 d-flex align-items-baseline">
+                                    <div class="h1 text-success">@exitosos</div>
+                                    <span class="text-muted ms-2">empleados</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="text-truncate">
+                                    <h3 class="card-title card-title-md">Errores</h3>
+                                </div>
+                                <div class="mt-2 d-flex align-items-baseline">
+                                    <div class="h1 @(fallidos > 0 ? "text-danger" : "text-success")">@fallidos</div>
+                                    <span class="text-muted ms-2">problemas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resultados detallados -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Detalles del Procesamiento</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Archivo</th>
+                                    <th>Estado</th>
+                                    <th>Legajo</th>
+                                    <th>Nombre</th>
+                                    <th>CUIT</th>
+                                    <th>Operación</th>
+                                    <th>Mensaje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var resultado in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 200px;" title="@resultado.Archivo">
+                                                @resultado.Archivo
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (resultado.Exitoso)
+                                            {
+                                                <span class="badge bg-success">Exitoso</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Error</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(resultado.Legajo))
+                                            {
+                                                <strong>@resultado.Legajo</strong>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(resultado.Nombre))
+                                            {
+                                                <span>@resultado.Nombre</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(resultado.Cuit))
+                                            {
+                                                <span>@resultado.Cuit</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(resultado.TipoOperacion))
+                                            {
+                                                var badgeClass = resultado.TipoOperacion switch
+                                                {
+                                                    "Creado" => "bg-primary",
+                                                    "Reactivado" => "bg-warning",
+                                                    "Actualizado" => "bg-info",
+                                                    _ => "bg-secondary"
+                                                };
+                                                <span class="badge @badgeClass">@resultado.TipoOperacion</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <small class="@(resultado.Exitoso ? "text-success" : "text-danger")">
+                                                @resultado.Mensaje
+                                            </small>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Empleados Creados</h3>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var creados = Model.Where(r => r.Exitoso && r.EsEmpleadoNuevo).ToList();
+                            if (creados.Any())
+                            {
+                                <ul class="list-unstyled">
+                                    @foreach (var empleado in creados)
+                                    {
+                                        <li class="mb-2">
+                                            <strong>@empleado.Legajo</strong> - @empleado.Apellido, @empleado.Nombre
+                                            <br>
+                                            <small class="text-muted">CUIT: @empleado.Cuit</small>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No se crearon empleados nuevos</p>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Empleados Reactivados</h3>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var reactivados = Model.Where(r => r.Exitoso && !r.EsEmpleadoNuevo).ToList();
+                            if (reactivados.Any())
+                            {
+                                <ul class="list-unstyled">
+                                    @foreach (var empleado in reactivados)
+                                    {
+                                        <li class="mb-2">
+                                            <strong>@empleado.Legajo</strong> - @empleado.Apellido, @empleado.Nombre
+                                            <br>
+                                            <small class="text-muted">CUIT: @empleado.Cuit</small>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No se reactivaron empleados</p>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

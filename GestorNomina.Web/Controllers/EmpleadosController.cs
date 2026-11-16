@@ -15,6 +15,7 @@ public class EmpleadosController : BaseController
     private readonly IEmpleadoService _empleadoService;
     private readonly IRegimenLaboralService _regimenService;
     private readonly IProyectoService _proyectoService;
+    private readonly IPdfEmpleadoService _pdfEmpleadoService;
     private readonly ApplicationDbContext _context;
     private readonly ILogger<EmpleadosController> _logger;
 
@@ -22,12 +23,14 @@ public class EmpleadosController : BaseController
         IEmpleadoService empleadoService,
         IRegimenLaboralService regimenService,
         IProyectoService proyectoService,
+        IPdfEmpleadoService pdfEmpleadoService,
         ApplicationDbContext context,
         ILogger<EmpleadosController> logger)
     {
         _empleadoService = empleadoService;
         _regimenService = regimenService;
         _proyectoService = proyectoService;
+        _pdfEmpleadoService = pdfEmpleadoService;
         _context = context;
         _logger = logger;
     }
@@ -426,6 +429,49 @@ public class EmpleadosController : BaseController
         {
             _logger.LogError(ex, "Error al obtener categorías por convenio {ConvenioId}", convenioId);
             return Json(new List<object>());
+        }
+    }
+
+    // GET: Empleados/CargarDesdePDF
+    public IActionResult CargarDesdePDF()
+    {
+        ViewData["PageTitle"] = "Cargar Empleados desde PDF";
+        ViewData["PagePretitle"] = "EMPLEADOS";
+        return View(new CargarEmpleadosPdfViewModel());
+    }
+
+    // POST: Empleados/ProcesarPDFs
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ProcesarPDFs(CargarEmpleadosPdfViewModel model)
+    {
+        ViewData["PageTitle"] = "Cargar Empleados desde PDF";
+        ViewData["PagePretitle"] = "EMPLEADOS";
+
+        if (model.Archivos == null || model.Archivos.Count == 0)
+        {
+            ModelState.AddModelError("Archivos", "Debe seleccionar al menos un archivo PDF");
+            return View("CargarDesdeP DF", model);
+        }
+
+        try
+        {
+            // Procesar los PDFs
+            var resultados = await _pdfEmpleadoService.ProcesarMultiplesPdfsAsync(model.Archivos.ToList());
+
+            // Contar resultados
+            var exitosos = resultados.Count(r => r.Exitoso);
+            var fallidos = resultados.Count(r => !r.Exitoso);
+
+            SetSuccessMessage($"Procesamiento completado: {exitosos} empleados procesados, {fallidos} errores");
+
+            return View("ResultadosProcesamiento", resultados);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al procesar PDFs");
+            SetErrorMessage("Error al procesar los archivos PDF");
+            return View("CargarDesdeP DF", model);
         }
     }
 }
