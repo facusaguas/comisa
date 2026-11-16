@@ -9,5 +9,6 @@ public enum TipoNovedadLiquidacion
     InicioRoster = 2,
     FinRoster = 3,
     Enfermedad = 4,
-    Baja = 5
+    Baja = 5,
+    Vacaciones = 6
 }

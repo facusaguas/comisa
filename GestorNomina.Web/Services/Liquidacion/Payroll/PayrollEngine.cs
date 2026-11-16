@@ -69,7 +69,7 @@ public class PayrollEngine : IPayrollEngine
             else if (empleado.TipoLiquidacion.Codigo == "INDIRECTO")
             {
                 // Para INDIRECTOS: requiere valor hora básico
-                if (!empleado.ValorHoraBasico.HasValue || empleado.ValorHoraBasico <= 0)
+                if (!empleado.ValorConvenidoDiario.HasValue || empleado.ValorConvenidoDiario <= 0)
                 {
                     throw new InvalidOperationException(
                         $"El empleado {empleado.Legajo} es INDIRECTO pero no tiene configurado el valor hora básico");

@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using GestorNomina.Web.Data;
 using GestorNomina.Web.Models.Entities;
+using GestorNomina.Web.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
@@ -202,6 +203,8 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
                     if (cell.IsEmpty()) continue;
 
                     decimal horas = 0;
+                    char? letraNovedad = null;
+                    
                     if (cell.TryGetValue(out double horasValue))
                     {
                         horas = (decimal)horasValue;
@@ -209,7 +212,24 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
                     else
                     {
                         var textoHoras = cell.GetString().Trim();
-                        if (decimal.TryParse(textoHoras, out var horasParsed))
+                        
+                        // Verificar si el texto contiene una letra al final (I, F, E, V, B)
+                        if (!string.IsNullOrEmpty(textoHoras))
+                        {
+                            var ultimoCaracter = textoHoras[textoHoras.Length - 1];
+                            if (char.IsLetter(ultimoCaracter))
+                            {
+                                var letra = char.ToUpper(ultimoCaracter);
+                                if (letra == 'I' || letra == 'F' || letra == 'E' || letra == 'V' || letra == 'B')
+                                {
+                                    letraNovedad = letra;
+                                    // Extraer solo la parte numérica
+                                    textoHoras = textoHoras.Substring(0, textoHoras.Length - 1).Trim();
+                                }
+                            }
+                        }
+                        
+                        if (!string.IsNullOrEmpty(textoHoras) && decimal.TryParse(textoHoras, out var horasParsed))
                             horas = horasParsed;
                     }
 
@@ -231,6 +251,38 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
 
                     _context.HorasRegistrosRaw.Add(registroRaw);
                     registrosImportados++;
+
+                    // Si se detectó una letra, crear la novedad correspondiente
+                    if (letraNovedad.HasValue && empleado != null)
+                    {
+                        var tipoNovedad = MapearLetraATipoNovedad(letraNovedad.Value);
+                        if (tipoNovedad.HasValue)
+                        {
+                            // Verificar si ya existe una novedad para este empleado en esta fecha y tipo
+                            var novedadExistente = await _context.Novedades
+                                .FirstOrDefaultAsync(n => n.EmpleadoId == empleado.Id
+                                                       && n.FechaNovedad == fecha
+                                                       && n.TipoNovedad == tipoNovedad.Value);
+
+                            if (novedadExistente == null)
+                            {
+                                var periodoNovedad = new DateTime(año, mes, 1, 0, 0, 0, DateTimeKind.Utc);
+                                var novedad = new Novedad
+                                {
+                                    EmpleadoId = empleado.Id,
+                                    Periodo = periodoNovedad,
+                                    Quincena = quincena,
+                                    TipoNovedad = tipoNovedad.Value,
+                                    FechaNovedad = fecha,
+                                    Observaciones = $"Importado desde Excel - Fila {filaActual}",
+                                    CreatedAt = DateTime.UtcNow,
+                                    UpdatedAt = DateTime.UtcNow
+                                };
+
+                                _context.Novedades.Add(novedad);
+                            }
+                        }
+                    }
                 }
 
                 filaActual++;
@@ -240,9 +292,9 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
             periodoCarga.Estado = "Cargado";
             await _context.SaveChangesAsync();
         }
-        catch(Exception e)
+        catch(Exception)
         {
-
+            // Log error if needed
         }
         return registrosImportados;
     }
@@ -259,6 +311,24 @@ public class ExcelParteDiarioService : IExcelParteDiarioService
         using var sha256 = SHA256.Create();
         var hashBytes = sha256.ComputeHash(stream);
         return Convert.ToHexString(hashBytes);
+    }
+
+    /// <summary>
+    /// Mapea las letras del Excel a los tipos de novedad correspondientes
+    /// </summary>
+    /// <param name="letra">Letra a mapear (I, F, E, V, B)</param>
+    /// <returns>Tipo de novedad correspondiente o null si no se reconoce la letra</returns>
+    private TipoNovedadLiquidacion? MapearLetraATipoNovedad(char letra)
+    {
+        return letra switch
+        {
+            'I' => TipoNovedadLiquidacion.InicioRoster,
+            'F' => TipoNovedadLiquidacion.FinRoster,
+            'E' => TipoNovedadLiquidacion.Enfermedad,
+            'V' => TipoNovedadLiquidacion.Vacaciones,
+            'B' => TipoNovedadLiquidacion.Baja,
+            _ => null
+        };
     }
 
 }

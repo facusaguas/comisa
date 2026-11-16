@@ -35,4 +35,12 @@ public interface ITangoExportService
     /// <param name="contenido">Contenido a guardar</param>
     /// <param name="rutaArchivo">Ruta del archivo de salida</param>
     Task GuardarArchivoAsync(string contenido, string rutaArchivo);
+
+    /// <summary>
+    /// Genera un archivo Excel con el formato para Tango
+    /// Formato: Fecha - Legajo - CodigoConcepto - ValorEntero - Monto
+    /// </summary>
+    /// <param name="recibos">Lista de recibos a exportar</param>
+    /// <returns>Stream del archivo Excel generado</returns>
+    Task<MemoryStream> GenerarExcelTangoAsync(List<Recibo> recibos);
 }

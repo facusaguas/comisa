@@ -511,7 +511,11 @@ public class LiquidacionController : BaseController
     public IActionResult ExportarTango()
     {
         var periodosConRecibos = _context.Recibos
-            .Select(r => new { r.Periodo, r.Quincena })
+            .Select(r => new PeriodoExportacionViewModel 
+            { 
+                Periodo = r.Periodo, 
+                Quincena = r.Quincena 
+            })
             .Distinct()
             .OrderByDescending(p => p.Periodo)
             .ThenByDescending(p => p.Quincena)
@@ -539,10 +543,13 @@ public class LiquidacionController : BaseController
                 return RedirectToAction(nameof(ExportarTango));
             }
 
-            var contenidoArchivo = await _tangoExportService.ExportarATango(recibos);
-            var nombreArchivo = $"liquidacion_{periodo.Replace("-", "_")}_q{quincena}_{DateTime.Now:yyyyMMdd}.txt";
+            // Generar Excel en lugar de archivo de texto
+            var excelStream = await _tangoExportService.GenerarExcelTangoAsync(recibos);
+            var nombreArchivo = $"Tango_Liquidacion_{periodo.Replace("-", "_")}_Q{quincena}_{DateTime.Now:yyyyMMdd}.xlsx";
 
-            return File(System.Text.Encoding.UTF8.GetBytes(contenidoArchivo), "text/plain", nombreArchivo);
+            return File(excelStream, 
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                nombreArchivo);
         }
         catch (Exception ex)
         {

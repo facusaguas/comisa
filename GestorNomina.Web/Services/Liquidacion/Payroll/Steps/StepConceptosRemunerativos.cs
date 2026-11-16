@@ -184,7 +184,7 @@ public class StepConceptosRemunerativos : IPayrollStep
         var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
         if (tieneFinRoster)
         {
-            var compensacion = valorHora * 40 * 1.45m;
+            var compensacion = valorHora * 18 * 1.45m;
             context.ItemsRemunerativos.Add(new ItemLiquidacion
             {
                 Concepto = CodigoConceptoTango.CompensacionEspecial,
