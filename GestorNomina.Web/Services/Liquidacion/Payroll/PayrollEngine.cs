@@ -50,7 +50,7 @@ public class PayrollEngine : IPayrollEngine
         if (empleado == null)
             throw new InvalidOperationException($"No se encontró el empleado con ID {empleadoId}");
 
-        if (!empleado.Activo)
+        if (empleado.Activo != true)
             throw new InvalidOperationException($"El empleado {empleado.Legajo} está inactivo");
 
         // Validar que el empleado tenga configuración de liquidación según su tipo

@@ -276,7 +276,7 @@ public class ProyectoService : IProyectoService
             var empleadosPorTipo = await _context.Empleados
                 .AsNoTracking()
                 .Include(e => e.TipoLiquidacion)
-                .Where(e => e.ProyectoId == proyectoId && e.Activo)
+                .Where(e => e.ProyectoId == proyectoId && e.Activo == true)
                 .GroupBy(e => e.TipoLiquidacion != null ? e.TipoLiquidacion.Nombre : "Sin tipo")
                 .Select(g => new { TipoContratacion = g.Key, Cantidad = g.Count() })
                 .ToListAsync();

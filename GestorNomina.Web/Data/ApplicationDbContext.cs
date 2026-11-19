@@ -25,6 +25,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<HoraRegistroAprobado> HorasRegistrosAprobados { get; set; }
     public DbSet<ValidacionRegistro> ValidacionesRegistros { get; set; }
 
+    // DbSets para Provincias y Ciudades
+    public DbSet<Provincia> Provincias { get; set; }
+    public DbSet<Ciudad> Ciudades { get; set; }
+
     // DbSets para Liquidación
     public DbSet<Convenio> Convenios { get; set; }
     public DbSet<TipoLiquidacion> TiposLiquidacion { get; set; }
@@ -84,6 +88,20 @@ public class ApplicationDbContext : DbContext
             .WithMany(r => r.Empleados)
             .HasForeignKey(e => e.RegimenId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Empleado -> Ciudad
+        modelBuilder.Entity<Empleado>()
+            .HasOne(e => e.Ciudad)
+            .WithMany(c => c.Empleados)
+            .HasForeignKey(e => e.CiudadId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Ciudad -> Provincia
+        modelBuilder.Entity<Ciudad>()
+            .HasOne(c => c.Provincia)
+            .WithMany(p => p.Ciudades)
+            .HasForeignKey(c => c.ProvinciaId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // EmpleadoProyecto -> Empleado
         modelBuilder.Entity<EmpleadoProyecto>()

@@ -37,7 +37,7 @@ public class ExcelExportService : IExcelExportService
                 .Include(e => e.TipoLiquidacion)
                 .Include(e => e.Categoria)
                 .Include(e => e.Disciplina)
-                .Where(e => e.ProyectoId == proyectoId && e.Activo)
+                .Where(e => e.ProyectoId == proyectoId && e.Activo == true)
                 .OrderBy(e => e.Apellido)
                 .ThenBy(e => e.Nombre)
                 .ToListAsync();

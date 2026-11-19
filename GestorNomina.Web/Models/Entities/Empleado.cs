@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using GestorNomina.Web.Models.Enums;
 
 namespace GestorNomina.Web.Models.Entities;
 
@@ -34,6 +35,13 @@ public class Empleado
     [Column("cuil")]
     public string? Cuil { get; set; }
 
+    [MaxLength(200)]
+    [Column("domicilio")]
+    public string? Domicilio { get; set; }
+
+    [Column("ciudad_id")]
+    public int? CiudadId { get; set; }
+
     [MaxLength(100)]
     [Column("cargo")]
     public string? Cargo { get; set; }
@@ -47,8 +55,14 @@ public class Empleado
     [Column("fecha_alta")]
     public DateTime? FechaAlta { get; set; }
 
+    [Column("fecha_baja")]
+    public DateTime? FechaBaja { get; set; }
+
+    [Column("forma_pago")]
+    public FormaPago FormaPago { get; set; } = FormaPago.Quincenal;
+
     [Column("activo")]
-    public bool Activo { get; set; } = true;
+    public bool? Activo { get; set; } = true;
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -92,6 +106,9 @@ public class Empleado
     // Navigation Properties - Existentes
     [ForeignKey("RegimenId")]
     public virtual RegimenLaboral? Regimen { get; set; }
+
+    [ForeignKey("CiudadId")]
+    public virtual Ciudad? Ciudad { get; set; }
 
     public virtual ICollection<EmpleadoProyecto> EmpleadosProyectos { get; set; } = new List<EmpleadoProyecto>();
     public virtual ICollection<HoraRegistroRaw> HorasRegistrosRaw { get; set; } = new List<HoraRegistroRaw>();

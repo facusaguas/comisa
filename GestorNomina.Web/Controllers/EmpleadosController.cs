@@ -398,6 +398,18 @@ public class EmpleadosController : BaseController
                 .OrderBy(d => d.Nombre)
                 .ToListAsync();
             ViewBag.Disciplinas = new SelectList(disciplinas, "Id", "Nombre");
+
+            // Cargar provincias
+            var provincias = await _context.Provincias
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+            ViewBag.Provincias = new SelectList(provincias, "Id", "Nombre");
+
+            // Cargar ciudades (todas, filtraremos por provincia en el cliente)
+            var ciudades = await _context.Ciudades
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+            ViewBag.Ciudades = new SelectList(ciudades, "Id", "Nombre");
         }
         catch (Exception ex)
         {
@@ -408,6 +420,8 @@ public class EmpleadosController : BaseController
             ViewBag.TiposLiquidacion = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Categorias = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Disciplinas = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Provincias = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Ciudades = new SelectList(Enumerable.Empty<SelectListItem>());
         }
     }
 
@@ -428,6 +442,31 @@ public class EmpleadosController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener categorías por convenio {ConvenioId}", convenioId);
+            return Json(new List<object>());
+        }
+    }
+
+    // API: Obtener ciudades por provincia
+    [HttpGet]
+    public async Task<IActionResult> GetCiudadesByProvincia(int provinciaId)
+    {
+        try
+        {
+            var ciudades = await _context.Ciudades
+                .Where(c => c.ProvinciaId == provinciaId)
+                .OrderBy(c => c.Nombre)
+                .Select(c => new { 
+                    id = c.Id, 
+                    nombre = c.Nombre,
+                    codigoPostal = c.CodigoPostal 
+                })
+                .ToListAsync();
+
+            return Json(ciudades);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener ciudades por provincia {ProvinciaId}", provinciaId);
             return Json(new List<object>());
         }
     }

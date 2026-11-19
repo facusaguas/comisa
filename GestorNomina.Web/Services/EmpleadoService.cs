@@ -47,7 +47,7 @@ public class EmpleadoService : IEmpleadoService
                     .ThenInclude(ep => ep.Proyecto)
                 .Include(e => e.Regimen)
                 .Include(e => e.Proyecto)
-                .Where(e => e.Activo)
+                .Where(e => e.Activo == true)
                 .OrderBy(e => e.Apellido)
                 .ThenBy(e => e.Nombre)
                 .ToListAsync();
@@ -70,6 +70,8 @@ public class EmpleadoService : IEmpleadoService
                     .ThenInclude(ep => ep.Proyecto)
                 .Include(e => e.Regimen)
                 .Include(e => e.Proyecto)
+                .Include(e => e.Ciudad)
+                    .ThenInclude(c => c.Provincia)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             return empleado != null ? MapToViewModel(empleado) : null;
@@ -117,6 +119,8 @@ public class EmpleadoService : IEmpleadoService
                 Apellido = model.Apellido.Trim(),
                 DocumentoIdentidad = model.DocumentoIdentidad?.Trim(),
                 Cuil = model.Cuil?.Trim(),
+                Domicilio = model.Domicilio?.Trim(),
+                CiudadId = model.CiudadId,
                 Cargo = model.Cargo?.Trim(),
                 RegimenId = model.RegimenId,
                 ProyectoId = model.ProyectoId,
@@ -126,6 +130,10 @@ public class EmpleadoService : IEmpleadoService
                 FechaAlta = model.FechaAlta.HasValue 
                     ? DateTime.SpecifyKind(model.FechaAlta.Value, DateTimeKind.Utc) 
                     : (DateTime?)null,
+                FechaBaja = model.FechaBaja.HasValue 
+                    ? DateTime.SpecifyKind(model.FechaBaja.Value, DateTimeKind.Utc) 
+                    : (DateTime?)null,
+                FormaPago = model.FormaPago,
                 ConvenioId = model.ConvenioId,
                 TipoLiquidacionId = model.TipoLiquidacionId,
                 CategoriaId = model.CategoriaId,
@@ -174,6 +182,8 @@ public class EmpleadoService : IEmpleadoService
             empleado.Apellido = model.Apellido.Trim();
             empleado.DocumentoIdentidad = model.DocumentoIdentidad?.Trim();
             empleado.Cuil = model.Cuil?.Trim();
+            empleado.Domicilio = model.Domicilio?.Trim();
+            empleado.CiudadId = model.CiudadId;
             empleado.Cargo = model.Cargo?.Trim();
             empleado.RegimenId = model.RegimenId;
             empleado.ProyectoId = model.ProyectoId;
@@ -183,6 +193,10 @@ public class EmpleadoService : IEmpleadoService
             empleado.FechaAlta = model.FechaAlta.HasValue 
                 ? DateTime.SpecifyKind(model.FechaAlta.Value, DateTimeKind.Utc) 
                 : (DateTime?)null;
+            empleado.FechaBaja = model.FechaBaja.HasValue 
+                ? DateTime.SpecifyKind(model.FechaBaja.Value, DateTimeKind.Utc) 
+                : (DateTime?)null;
+            empleado.FormaPago = model.FormaPago;
             empleado.ConvenioId = model.ConvenioId;
             empleado.TipoLiquidacionId = model.TipoLiquidacionId;
             empleado.CategoriaId = model.CategoriaId;
@@ -264,13 +278,13 @@ public class EmpleadoService : IEmpleadoService
                 return (false, "Empleado no encontrado");
             }
 
-            empleado.Activo = !empleado.Activo;
+            empleado.Activo = empleado.Activo == true ? false : true;
             empleado.UpdatedAt = DateTime.UtcNow;
 
             _context.Empleados.Update(empleado);
             await _context.SaveChangesAsync();
 
-            var estado = empleado.Activo ? "activado" : "desactivado";
+            var estado = empleado.Activo == true ? "activado" : "desactivado";
             _logger.LogInformation("Empleado {Estado}: {EmpleadoId}", estado, id);
 
             return (true, $"Empleado {estado} exitosamente");
@@ -332,11 +346,15 @@ public class EmpleadoService : IEmpleadoService
             Apellido = empleado.Apellido,
             DocumentoIdentidad = empleado.DocumentoIdentidad,
             Cuil = empleado.Cuil,
+            Domicilio = empleado.Domicilio,
+            CiudadId = empleado.CiudadId,
             Cargo = empleado.Cargo,
             RegimenId = empleado.RegimenId,
             ProyectoId = empleado.ProyectoId,
             FechaIngreso = empleado.FechaIngreso,
             FechaAlta = empleado.FechaAlta,
+            FechaBaja = empleado.FechaBaja,
+            FormaPago = empleado.FormaPago,
             ConvenioId = empleado.ConvenioId,
             TipoLiquidacionId = empleado.TipoLiquidacionId,
             CategoriaId = empleado.CategoriaId,
@@ -358,6 +376,18 @@ public class EmpleadoService : IEmpleadoService
         if (empleado.Proyecto != null)
         {
             viewModel.ProyectoNombre = empleado.Proyecto.Nombre;
+        }
+
+        if (empleado.Ciudad != null)
+        {
+            viewModel.CiudadNombre = empleado.Ciudad.Nombre;
+            viewModel.CodigoPostal = empleado.Ciudad.CodigoPostal;
+            viewModel.ProvinciaId = empleado.Ciudad.ProvinciaId;
+            
+            if (empleado.Ciudad.Provincia != null)
+            {
+                viewModel.ProvinciaNombre = empleado.Ciudad.Provincia.Nombre;
+            }
         }
 
         if (empleado.EmpleadosProyectos != null && empleado.EmpleadosProyectos.Any())

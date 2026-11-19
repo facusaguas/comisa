@@ -55,9 +55,31 @@
                                 <div class="datagrid-content">@(Model.Cuil ?? "-")</div>
                             </div>
                             <div class="datagrid-item">
-                                <div class="datagrid-title">Cargo</div>
-                                <div class="datagrid-content">@(Model.Cargo ?? "-")</div>
+                                <div class="datagrid-title">Domicilio</div>
+                                <div class="datagrid-content">@(Model.Domicilio ?? "-")</div>
                             </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Ciudad</div>
+                                <div class="datagrid-content">
+                                    @if (!string.IsNullOrEmpty(Model.CiudadNombre))
+                                    {
+                                        <span>@Model.CiudadNombre</span>
+                                        @if (!string.IsNullOrEmpty(Model.CodigoPostal))
+                                        {
+                                            <text> (CP: @Model.CodigoPostal)</text>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Provincia</div>
+                                <div class="datagrid-content">@(Model.ProvinciaNombre ?? "-")</div>
+                            </div>
+
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Fecha de Ingreso</div>
                                 <div class="datagrid-content">
@@ -85,6 +107,25 @@
                                 </div>
                             </div>
                             <div class="datagrid-item">
+                                <div class="datagrid-title">Fecha de Baja</div>
+                                <div class="datagrid-content">
+                                    @if (Model.FechaBaja.HasValue)
+                                    {
+                                        <span class="badge bg-red-lt">@Model.FechaBaja.Value.ToString("dd/MM/yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Forma de Pago</div>
+                                <div class="datagrid-content">
+                                    <span class="badge bg-cyan-lt">@Model.FormaPagoTexto</span>
+                                </div>
+                            </div>
+                            <div class="datagrid-item">
                                 <div class="datagrid-title">Régimen Laboral</div>
                                 <div class="datagrid-content">
                                     <span class="badge bg-blue-lt">@(Model.RegimenNombre ?? "-")</span>
@@ -97,13 +138,17 @@
                             <div class="datagrid-item">
                                 <div class="datagrid-title">Estado</div>
                                 <div class="datagrid-content">
-                                    @if (Model.Activo)
+                                    @if (Model.Activo == true)
                                     {
                                         <span class="badge bg-success">Activo</span>
                                     }
-                                    else
+                                    else if (Model.Activo == false)
                                     {
                                         <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">No definido</span>
                                     }
                                 </div>
                             </div>

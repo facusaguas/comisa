@@ -34,7 +34,7 @@ public class HomeController : BaseController
 
             // KPIs principales
             ViewBag.TotalEmpleados = await _context.Empleados.CountAsync();
-            ViewBag.EmpleadosActivos = await _context.Empleados.CountAsync(e => e.Activo);
+            ViewBag.EmpleadosActivos = await _context.Empleados.CountAsync(e => e.Activo == true);
             ViewBag.TotalProyectos = await _context.Proyectos.CountAsync();
             ViewBag.ProyectosActivos = await _context.Proyectos.CountAsync(p => p.Activo);
             
@@ -119,7 +119,7 @@ public class HomeController : BaseController
             // Distribución de empleados por régimen
             var empleadosPorRegimen = await _context.Empleados
                 .Include(e => e.Regimen)
-                .Where(e => e.Activo && e.RegimenId.HasValue)
+                .Where(e => e.Activo == true && e.RegimenId.HasValue)
                 .GroupBy(e => e.Regimen!.Nombre)
                 .Select(g => new
                 {

@@ -103,6 +103,46 @@ namespace GestorNomina.Web.Migrations
                     b.ToTable("categorias");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Ciudad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoPostal")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("codigo_postal");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("ProvinciaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("provincia_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProvinciaId");
+
+                    b.ToTable("ciudades");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.ConceptoLiquidacion", b =>
                 {
                     b.Property<int>("Id")
@@ -254,6 +294,10 @@ namespace GestorNomina.Web.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("categoria_id");
 
+                    b.Property<int?>("CiudadId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ciudad_id");
+
                     b.Property<int?>("ConvenioId")
                         .HasColumnType("integer")
                         .HasColumnName("convenio_id");
@@ -275,6 +319,11 @@ namespace GestorNomina.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("documento_identidad");
+
+                    b.Property<string>("Domicilio")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("domicilio");
 
                     b.Property<DateTime?>("FechaAlta")
                         .HasColumnType("timestamp with time zone")
@@ -325,6 +374,8 @@ namespace GestorNomina.Web.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoriaId");
+
+                    b.HasIndex("CiudadId");
 
                     b.HasIndex("ConvenioId");
 
@@ -667,6 +718,34 @@ namespace GestorNomina.Web.Migrations
                     b.HasIndex("ProyectoId", "Mes", "Anio");
 
                     b.ToTable("periodos_carga");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Provincia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("provincias");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Proyecto", b =>
@@ -1184,11 +1263,27 @@ namespace GestorNomina.Web.Migrations
                     b.Navigation("Convenio");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Ciudad", b =>
+                {
+                    b.HasOne("GestorNomina.Web.Models.Entities.Provincia", "Provincia")
+                        .WithMany("Ciudades")
+                        .HasForeignKey("ProvinciaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Provincia");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Empleado", b =>
                 {
                     b.HasOne("GestorNomina.Web.Models.Entities.Categoria", "Categoria")
                         .WithMany("Empleados")
                         .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GestorNomina.Web.Models.Entities.Ciudad", "Ciudad")
+                        .WithMany("Empleados")
+                        .HasForeignKey("CiudadId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("GestorNomina.Web.Models.Entities.Convenio", "Convenio")
@@ -1217,6 +1312,8 @@ namespace GestorNomina.Web.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Categoria");
+
+                    b.Navigation("Ciudad");
 
                     b.Navigation("Convenio");
 
@@ -1448,6 +1545,11 @@ namespace GestorNomina.Web.Migrations
                     b.Navigation("Empleados");
                 });
 
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Ciudad", b =>
+                {
+                    b.Navigation("Empleados");
+                });
+
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.ConceptoLiquidacion", b =>
                 {
                     b.Navigation("ReciboDetalles");
@@ -1488,6 +1590,11 @@ namespace GestorNomina.Web.Migrations
                     b.Navigation("HorasRegistrosAprobados");
 
                     b.Navigation("HorasRegistrosRaw");
+                });
+
+            modelBuilder.Entity("GestorNomina.Web.Models.Entities.Provincia", b =>
+                {
+                    b.Navigation("Ciudades");
                 });
 
             modelBuilder.Entity("GestorNomina.Web.Models.Entities.Proyecto", b =>

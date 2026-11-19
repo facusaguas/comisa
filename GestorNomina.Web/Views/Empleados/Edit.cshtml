@@ -36,6 +36,22 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Nombre" class="form-label required">Nombre</label>
+                                        <input asp-for="Nombre" class="form-control" />
+                                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Apellido" class="form-label required">Apellido</label>
+                                        <input asp-for="Apellido" class="form-control" />
+                                        <span asp-validation-for="Apellido" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="Legajo" class="form-label required">Legajo</label>
@@ -59,29 +75,42 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="mb-3">
-                                        <label asp-for="Nombre" class="form-label required">Nombre</label>
-                                        <input asp-for="Nombre" class="form-control" />
-                                        <span asp-validation-for="Nombre" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label asp-for="Apellido" class="form-label required">Apellido</label>
-                                        <input asp-for="Apellido" class="form-control" />
-                                        <span asp-validation-for="Apellido" class="text-danger"></span>
+                                        <label asp-for="Domicilio" class="form-label">Domicilio</label>
+                                        <input asp-for="Domicilio" class="form-control" placeholder="Ej: Calle Falsa 123" />
+                                        <span asp-validation-for="Domicilio" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="Cargo" class="form-label">Cargo</label>
-                                        <input asp-for="Cargo" class="form-control" />
-                                        <span asp-validation-for="Cargo" class="text-danger"></span>
+                                        <label asp-for="ProvinciaId" class="form-label">Provincia</label>
+                                        <select asp-for="ProvinciaId" class="form-select" id="provinciaSelect">
+                                            <option value="">Seleccione una provincia...</option>
+                                            @if (ViewBag.Provincias != null)
+                                            {
+                                                @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Provincias)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="ProvinciaId" class="text-danger"></span>
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="CiudadId" class="form-label">Ciudad</label>
+                                        <select asp-for="CiudadId" class="form-select" id="ciudadSelect">
+                                            <option value="">Seleccione primero una provincia...</option>
+                                        </select>
+                                        <span asp-validation-for="CiudadId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="FechaIngreso" class="form-label required">Fecha de Ingreso</label>
@@ -97,8 +126,26 @@
                                         <small class="form-hint">Fecha de alta en el sistema de liquidación</small>
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label asp-for="FechaBaja" class="form-label">Fecha de Baja</label>
+                                        <input asp-for="FechaBaja" type="date" class="form-control" />
+                                        <span asp-validation-for="FechaBaja" class="text-danger"></span>
+                                        <small class="form-hint">Fecha en que el empleado causó baja</small>
+                                    </div>
+                                </div>
                             </div>
                             <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="FormaPago" class="form-label">Forma de Pago</label>
+                                        <select asp-for="FormaPago" class="form-select">
+                                            <option value="1">Quincenal</option>
+                                            <option value="2">Mensual</option>
+                                        </select>
+                                        <span asp-validation-for="FormaPago" class="text-danger"></span>
+                                    </div>
+                                </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="RegimenId" class="form-label required">Régimen Laboral</label>
@@ -115,6 +162,8 @@
                                         <span asp-validation-for="RegimenId" class="text-danger"></span>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="ProyectoId" class="form-label">Proyecto Actual</label>
@@ -131,15 +180,16 @@
                                         <span asp-validation-for="ProyectoId" class="text-danger"></span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Estado</label>
-                                        <div class="form-check form-switch mt-2">
-                                            <input asp-for="Activo" class="form-check-input" type="checkbox" />
-                                            <label asp-for="Activo" class="form-check-label">Activo</label>
-                                        </div>
+                                        <label asp-for="Activo" class="form-label">Estado</label>
+                                        <select asp-for="Activo" class="form-select">
+                                            <option value="">Pendiente</option>
+                                            <option value="true">Activo</option>
+                                            <option value="false">Inactivo</option>
+                                        </select>
+                                        <span asp-validation-for="Activo" class="text-danger"></span>
+                                        <small class="form-hint">Pendiente: aún no definido | Activo: trabajando | Inactivo: dado de baja</small>
                                     </div>
                                 </div>
                             </div>
@@ -271,62 +321,109 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
-        // Dropdown dependiente: Convenio -> Categoría (Vanilla JavaScript)
+        // Dropdown dependiente: Convenio -> Categoría y Provincia -> Ciudad
         document.addEventListener('DOMContentLoaded', function() {
             const convenioSelect = document.getElementById('convenioSelect');
             const categoriaSelect = document.getElementById('categoriaSelect');
+            const provinciaSelect = document.getElementById('provinciaSelect');
+            const ciudadSelect = document.getElementById('ciudadSelect');
             const categoriaIdActual = @(Model.CategoriaId?.ToString() ?? "null");
+            const ciudadIdActual = @(Model.CiudadId?.ToString() ?? "null");
             
-            if (!convenioSelect || !categoriaSelect) {
-                return;
+            // ========================================
+            // CONVENIO -> CATEGORÍA
+            // ========================================
+            if (convenioSelect && categoriaSelect) {
+                convenioSelect.addEventListener('change', function() {
+                    const convenioId = this.value;
+                    
+                    if (!convenioId) {
+                        categoriaSelect.innerHTML = '<option value="">Seleccione primero un convenio...</option>';
+                        categoriaSelect.disabled = true;
+                        return;
+                    }
+                    
+                    fetch('@Url.Action("GetCategoriasByConvenio", "Empleados")?convenioId=' + convenioId)
+                        .then(response => response.json())
+                        .then(data => {
+                            categoriaSelect.innerHTML = '<option value="">Seleccione una categoría...</option>';
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(item => {
+                                    const option = document.createElement('option');
+                                    option.value = item.id;
+                                    option.textContent = item.nombre;
+                                    
+                                    if (categoriaIdActual && item.id == categoriaIdActual) {
+                                        option.selected = true;
+                                    }
+                                    
+                                    categoriaSelect.appendChild(option);
+                                });
+                                categoriaSelect.disabled = false;
+                            } else {
+                                categoriaSelect.innerHTML = '<option value="">No hay categorías disponibles</option>';
+                                categoriaSelect.disabled = true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al cargar categorías:', error);
+                            categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
+                            categoriaSelect.disabled = true;
+                        });
+                });
+                
+                if (convenioSelect.value) {
+                    convenioSelect.dispatchEvent(new Event('change'));
+                }
             }
             
-            // Al cambiar el convenio
-            convenioSelect.addEventListener('change', function() {
-                const convenioId = this.value;
+            // ========================================
+            // PROVINCIA -> CIUDAD
+            // ========================================
+            if (provinciaSelect && ciudadSelect) {
+                provinciaSelect.addEventListener('change', function() {
+                    const provinciaId = this.value;
+                    
+                    if (!provinciaId) {
+                        ciudadSelect.innerHTML = '<option value="">Seleccione primero una provincia...</option>';
+                        ciudadSelect.disabled = true;
+                        return;
+                    }
+                    
+                    fetch('@Url.Action("GetCiudadesByProvincia", "Empleados")?provinciaId=' + provinciaId)
+                        .then(response => response.json())
+                        .then(data => {
+                            ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad...</option>';
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(item => {
+                                    const option = document.createElement('option');
+                                    option.value = item.id;
+                                    option.textContent = item.nombre + ' (CP: ' + item.codigoPostal + ')';
+                                    
+                                    if (ciudadIdActual && item.id == ciudadIdActual) {
+                                        option.selected = true;
+                                    }
+                                    
+                                    ciudadSelect.appendChild(option);
+                                });
+                                ciudadSelect.disabled = false;
+                            } else {
+                                ciudadSelect.innerHTML = '<option value="">No hay ciudades disponibles</option>';
+                                ciudadSelect.disabled = true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al cargar ciudades:', error);
+                            ciudadSelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                            ciudadSelect.disabled = true;
+                        });
+                });
                 
-                if (!convenioId) {
-                    // Si no hay convenio seleccionado, limpiar categorías
-                    categoriaSelect.innerHTML = '<option value="">Seleccione primero un convenio...</option>';
-                    categoriaSelect.disabled = true;
-                    return;
+                if (provinciaSelect.value) {
+                    provinciaSelect.dispatchEvent(new Event('change'));
                 }
-                
-                // Cargar categorías del convenio seleccionado
-                fetch('@Url.Action("GetCategoriasByConvenio", "Empleados")?convenioId=' + convenioId)
-                    .then(response => response.json())
-                    .then(data => {
-                        categoriaSelect.innerHTML = '<option value="">Seleccione una categoría...</option>';
-                        
-                        if (data && data.length > 0) {
-                            data.forEach(item => {
-                                const option = document.createElement('option');
-                                option.value = item.id;
-                                option.textContent = item.nombre;
-                                
-                                // Mantener la categoría seleccionada
-                                if (categoriaIdActual && item.id == categoriaIdActual) {
-                                    option.selected = true;
-                                }
-                                
-                                categoriaSelect.appendChild(option);
-                            });
-                            categoriaSelect.disabled = false;
-                        } else {
-                            categoriaSelect.innerHTML = '<option value="">No hay categorías disponibles</option>';
-                            categoriaSelect.disabled = true;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error al cargar categorías:', error);
-                        categoriaSelect.innerHTML = '<option value="">Error al cargar categorías</option>';
-                        categoriaSelect.disabled = true;
-                    });
-            });
-            
-            // Si hay un convenio preseleccionado al cargar la página, cargar sus categorías
-            if (convenioSelect.value) {
-                convenioSelect.dispatchEvent(new Event('change'));
             }
         });
     </script>

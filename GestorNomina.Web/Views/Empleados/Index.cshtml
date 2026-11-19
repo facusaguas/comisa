@@ -117,7 +117,6 @@
                                     <th>Legajo</th>
                                     <th>Apellido y Nombre</th>
                                     <th>CUIL</th>
-                                    <th>Cargo</th>
                                     <th>Régimen</th>
                                     <th>Fecha Ingreso</th>
                                     <th>Proyecto Actual</th>
@@ -129,7 +128,7 @@
                                 @if (Model.Count == 0)
                                 {
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-5">
+                                        <td colspan="8" class="text-center text-muted py-5">
                                             <div class="empty">
                                                 <div class="empty-icon">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="10" cy="10" r="7" /><line x1="21" y1="21" x2="15" y2="15" /></svg>
@@ -154,7 +153,6 @@
                                                 @empleado.Apellido, @empleado.Nombre
                                             </td>
                                             <td>@(empleado.Cuil ?? "-")</td>
-                                            <td>@(empleado.Cargo ?? "-")</td>
                                             <td>
                                                 @if (!string.IsNullOrEmpty(empleado.RegimenNombre))
                                                 {
@@ -181,13 +179,17 @@
                                                 }
                                             </td>
                                             <td>
-                                                @if (empleado.Activo)
+                                                @if (empleado.Activo == true)
                                                 {
                                                     <span class="badge bg-success">Activo</span>
                                                 }
-                                                else
+                                                else if (empleado.Activo == false)
                                                 {
                                                     <span class="badge bg-secondary">Inactivo</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">No definido</span>
                                                 }
                                             </td>
                                             <td>

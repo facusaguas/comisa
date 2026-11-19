@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using GestorNomina.Web.Models.Enums;
 
 namespace GestorNomina.Web.Models.ViewModels;
 
@@ -32,6 +33,16 @@ public class EmpleadoViewModel
     [Display(Name = "CUIL")]
     public string? Cuil { get; set; }
 
+    [StringLength(200, ErrorMessage = "El domicilio no puede exceder los 200 caracteres")]
+    [Display(Name = "Domicilio")]
+    public string? Domicilio { get; set; }
+
+    [Display(Name = "Provincia")]
+    public int? ProvinciaId { get; set; }
+
+    [Display(Name = "Ciudad")]
+    public int? CiudadId { get; set; }
+
     [StringLength(100, ErrorMessage = "El cargo no puede exceder los 100 caracteres")]
     [Display(Name = "Cargo")]
     public string? Cargo { get; set; }
@@ -50,8 +61,15 @@ public class EmpleadoViewModel
     [Display(Name = "Fecha de Alta")]
     public DateTime? FechaAlta { get; set; }
 
+    [DataType(DataType.Date)]
+    [Display(Name = "Fecha de Baja")]
+    public DateTime? FechaBaja { get; set; }
+
+    [Display(Name = "Forma de Pago")]
+    public FormaPago FormaPago { get; set; } = FormaPago.Quincenal;
+
     [Display(Name = "Activo")]
-    public bool Activo { get; set; } = true;
+    public bool? Activo { get; set; } = true;
 
     // ==========================================
     // CAMPOS DE LIQUIDACIÓN
@@ -91,7 +109,10 @@ public class EmpleadoViewModel
     public string NombreCompleto => $"{Apellido}, {Nombre}";
 
     [Display(Name = "Estado")]
-    public string EstadoTexto => Activo ? "Activo" : "Inactivo";
+    public string EstadoTexto => Activo == true ? "Activo" : (Activo == false ? "Inactivo" : "No definido");
+
+    [Display(Name = "Forma de Pago")]
+    public string FormaPagoTexto => FormaPago == FormaPago.Quincenal ? "Quincenal" : "Mensual";
 
     // Nombres para visualización
     public string? RegimenNombre { get; set; }
@@ -100,6 +121,9 @@ public class EmpleadoViewModel
     public string? TipoLiquidacionNombre { get; set; }
     public string? CategoriaNombre { get; set; }
     public string? DisciplinaNombre { get; set; }
+    public string? ProvinciaNombre { get; set; }
+    public string? CiudadNombre { get; set; }
+    public string? CodigoPostal { get; set; }
 
     // Proyectos asignados (para visualización)
     public List<string> ProyectosAsignados { get; set; } = new();
