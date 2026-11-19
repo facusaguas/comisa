@@ -118,10 +118,12 @@ public class ConceptosCalculator
         }
        
         // 5. Compensación Especial (1033)
+        // Se suma los días de la quincena actual y la inmediata anterior
         decimal diasRoster = context.DIAS;
         
         if (context.Quincena == 2 && _context != null)
         {
+            // Si es quincena 2, buscar quincena 1 del mismo mes
             var reciboQuincena1 = await _context.Recibos
                 .FirstOrDefaultAsync(r => r.EmpleadoId == context.Empleado.Id
                     && r.Periodo == context.Periodo
@@ -132,18 +134,47 @@ public class ConceptosCalculator
                 diasRoster += reciboQuincena1.DiasTrabajados;
             }
         }
+        else if (context.Quincena == 1 && _context != null)
+        {
+            // Si es quincena 1, buscar quincena 2 del mes anterior
+            // Periodo formato: "2024-11-01"
+            if (DateTime.TryParse(context.Periodo, out var periodoDate))
+            {
+                var periodoAnterior = periodoDate.AddMonths(-1).ToString("yyyy-MM-dd");
+                var reciboQuincena2MesAnterior = await _context.Recibos
+                    .FirstOrDefaultAsync(r => r.EmpleadoId == context.Empleado.Id
+                        && r.Periodo == periodoAnterior
+                        && r.Quincena == 2);
+                
+                if (reciboQuincena2MesAnterior != null)
+                {
+                    diasRoster += reciboQuincena2MesAnterior.DiasTrabajados;
+                }
+            }
+        }
 
         var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
         if (tieneFinRoster)
         {
-            var compensacion = valorHora * 40 * 1.45m;
+            // Calcular horas según la lógica especificada
+            decimal horas;
+            if (diasRoster >= 14 && diasRoster <= 20)
+            {
+                horas = 40;
+            }
+            else
+            {
+                horas = (diasRoster * 40) / 20;
+            }
+
+            var compensacion = valorHora * horas * 1.45m;
             ActualizarOAgregarItem(
                 context.ItemsRemunerativos,
                 CodigoConceptoTango.CompensacionEspecial,
                 1,
                 compensacion,
                 compensacion,
-                "Compensación Especial (14 días roster)"
+                $"Compensación Especial ({diasRoster} días - {horas:N2} hs)"
             );
 
             // Premio Final de Obra (NO REMUNERATIVO - no cambia con horas)

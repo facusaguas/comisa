@@ -180,35 +180,64 @@ public class StepConceptosRemunerativos : IPayrollStep
             });
         }
 
-        int valor = 40;
-
-        if (context.Empleado.Id == 1101)
-        {
-            valor = 38;
-        }
-        else if (context.Empleado.Id == 1251)
-        {
-            valor = 12;
-        }
-        else if (context.Empleado.Id == 1271)
-        {
-            valor = 18;
-        }
-
-
-
-        // 11. Compensación Especial (1033): ValorHora * 40
+        // 11. Compensación Especial (1033): ValorHora * horas * 1.45
+        // Se suma los días de la quincena actual y la inmediata anterior
         var tieneFinRoster = context.Novedades.Any(n => n.TipoNovedad == TipoNovedadLiquidacion.FinRoster);
         if (tieneFinRoster)
         {
-            var compensacion = valorHora * valor * 1.45m;
+            decimal diasRoster = context.DIAS;
+            
+            if (context.Quincena == 2 && _context != null)
+            {
+                // Si es quincena 2, buscar quincena 1 del mismo mes
+                var reciboQuincena1 = await _context.Recibos
+                    .FirstOrDefaultAsync(r => r.EmpleadoId == context.Empleado.Id
+                        && r.Periodo == context.Periodo
+                        && r.Quincena == 1);
+                
+                if (reciboQuincena1 != null)
+                {
+                    diasRoster += reciboQuincena1.DiasTrabajados;
+                }
+            }
+            else if (context.Quincena == 1 && _context != null)
+            {
+                // Si es quincena 1, buscar quincena 2 del mes anterior
+                // Periodo formato: "2024-11-01"
+                if (DateTime.TryParse(context.Periodo, out var periodoDate))
+                {
+                    var periodoAnterior = periodoDate.AddMonths(-1).ToString("yyyy-MM-dd");
+                    var reciboQuincena2MesAnterior = await _context.Recibos
+                        .FirstOrDefaultAsync(r => r.EmpleadoId == context.Empleado.Id
+                            && r.Periodo == periodoAnterior
+                            && r.Quincena == 2);
+                    
+                    if (reciboQuincena2MesAnterior != null)
+                    {
+                        diasRoster += reciboQuincena2MesAnterior.DiasTrabajados;
+                    }
+                }
+            }
+
+            // Calcular horas según la lógica especificada
+            decimal horas;
+            if (diasRoster >= 14 && diasRoster <= 20)
+            {
+                horas = 40;
+            }
+            else
+            {
+                horas = (diasRoster * 40) / 20;
+            }
+
+            var compensacion = valorHora * horas * 1.45m;
             context.ItemsRemunerativos.Add(new ItemLiquidacion
             {
                 Concepto = CodigoConceptoTango.CompensacionEspecial,
                 Unidades = 1,
                 ValorUnitario = compensacion,
                 Subtotal = compensacion,
-                Descripcion = "Compensación Especial (14 días roster)"
+                Descripcion = $"Compensación Especial ({diasRoster} días - {horas:N2} hs)"
             });
 
             // 12. Premio Final de Obra (1034): Valor fijo del proyecto (NO REMUNERATIVO)
