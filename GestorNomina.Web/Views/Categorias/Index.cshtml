@@ -1,0 +1,240 @@
+@model List<GestorNomina.Web.Models.Entities.Categoria>
+
+@{
+    ViewData["Title"] = "Categorías Profesionales";
+}
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M3 21l18 0"></path>
+                        <path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4"></path>
+                        <path d="M5 21l0 -10.15"></path>
+                        <path d="M19 21l0 -10.15"></path>
+                        <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"></path>
+                    </svg>
+                    Categorías Profesionales
+                </h2>
+                <div class="text-muted mt-1">Gestión de categorías y salarios básicos por convenio</div>
+            </div>
+            <div class="col-auto ms-auto">
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalActualizacionMasiva">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+                        <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+                    </svg>
+                    Actualización Masiva
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <div class="d-flex">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M5 12l5 5l10 -10" />
+                        </svg>
+                    </div>
+                    <div>@TempData["Success"]</div>
+                </div>
+                <a class="btn-close" data-bs-dismiss="alert"></a>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                <div class="d-flex">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <circle cx="12" cy="12" r="9" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                    </div>
+                    <div>@TempData["Error"]</div>
+                </div>
+                <a class="btn-close" data-bs-dismiss="alert"></a>
+            </div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible" role="alert">
+                <div class="d-flex">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M12 9v2m0 4v.01" />
+                            <path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" />
+                        </svg>
+                    </div>
+                    <div>@TempData["Warning"]</div>
+                </div>
+                <a class="btn-close" data-bs-dismiss="alert"></a>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-body">
+                @if (!Model.Any())
+                {
+                    <div class="empty">
+                        <p class="empty-title">No hay categorías registradas</p>
+                        <p class="empty-subtitle text-muted">
+                            Las categorías profesionales se gestionan desde la base de datos.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Convenio</th>
+                                    <th class="text-end">Salario Básico</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var categoria in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@categoria.Codigo</strong></td>
+                                        <td>@categoria.Nombre</td>
+                                        <td>
+                                            @if (categoria.Convenio != null)
+                                            {
+                                                <span class="badge bg-blue">@categoria.Convenio.Nombre</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Sin convenio</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (categoria.SalarioBasico.HasValue)
+                                            {
+                                                <strong>@categoria.SalarioBasico.Value.ToString("C2")</strong>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Actualización Masiva -->
+<div class="modal modal-blur fade" id="modalActualizacionMasiva" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form asp-action="ActualizarSalariosMasivo" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Actualización Masiva de Salarios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <circle cx="12" cy="12" r="9" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                    <polyline points="11 12 12 12 12 16 13 16" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="alert-title">Información importante</h4>
+                                <div class="text-muted">Esta operación actualizará los salarios básicos de las categorías seleccionadas aplicando el porcentaje de aumento especificado.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Convenio</label>
+                        <select name="convenioId" class="form-select">
+                            <option value="">Todos los convenios</option>
+                            @foreach (var convenio in (SelectList)ViewBag.Convenios)
+                            {
+                                <option value="@convenio.Value">@convenio.Text</option>
+                            }
+                        </select>
+                        <small class="form-hint">Dejar vacío para aplicar a todas las categorías</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">Porcentaje de Aumento (%)</label>
+                        <input type="number" name="porcentajeAumento" class="form-control" min="0.01" step="0.01" required placeholder="Ej: 15.5">
+                        <small class="form-hint">Ingrese el porcentaje sin el símbolo %</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-check form-switch">
+                            <input type="checkbox" name="actualizarEmpleados" class="form-check-input" value="true">
+                            <span class="form-check-label">Actualizar también valores de empleados</span>
+                        </label>
+                        <small class="form-hint text-muted d-block mt-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-inline" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <circle cx="12" cy="12" r="9" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
+                                <polyline points="11 12 12 12 12 16 13 16" />
+                            </svg>
+                            Si se activa, se actualizarán los campos <strong>valor_hora_basico</strong> y <strong>valor_convenido_diario</strong> 
+                            de los empleados con tipo de liquidación <strong>"Directo con acuerdo"</strong> o <strong>"Indirecto"</strong>.
+                        </small>
+                    </div>
+
+                    <div class="alert alert-warning mb-0" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M12 9v2m0 4v.01" />
+                                    <path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" />
+                                </svg>
+                            </div>
+                            <div>
+                                <strong>Atención:</strong> Esta operación no se puede deshacer. Asegúrese de verificar los valores antes de confirmar.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn me-auto" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M5 12l5 5l10 -10" />
+                        </svg>
+                        Aplicar Actualización
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

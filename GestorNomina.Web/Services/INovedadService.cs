@@ -9,6 +9,7 @@ public interface INovedadService
     Task<List<Novedad>> GetAllAsync();
     Task<List<Novedad>> GetByEmpleadoAsync(int empleadoId);
     Task<List<Novedad>> GetByPeriodoAsync(DateTime periodo, int quincena);
+    Task<List<Novedad>> GetFilteredAsync(string? legajo, string? cuil, int? proyectoId, DateTime? periodo, int? quincena, TipoNovedadLiquidacion? tipoNovedad);
     Task<Novedad?> GetByIdAsync(int id);
     Task<Novedad> CreateAsync(NovedadViewModel model);
     Task<Novedad> UpdateAsync(int id, NovedadViewModel model);

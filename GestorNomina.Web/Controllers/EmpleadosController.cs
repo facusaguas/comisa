@@ -513,4 +513,188 @@ public class EmpleadosController : BaseController
             return View("CargarDesdeP DF", model);
         }
     }
+
+    // GET: Empleados/ExportarExcel
+    [HttpGet]
+    public async Task<IActionResult> ExportarExcel(string? nombre, string? apellido, string? cuil, int? proyectoId, bool? activo)
+    {
+        try
+        {
+            // Obtener todos los empleados y aplicar los mismos filtros que en Index
+            var todosEmpleados = await _empleadoService.GetAllAsync();
+            
+            // Aplicar filtros
+            var empleadosFiltrados = todosEmpleados.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(nombre))
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Nombre.Contains(nombre, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(apellido))
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Apellido.Contains(apellido, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(cuil))
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Cuil != null && e.Cuil.Contains(cuil));
+            }
+
+            if (proyectoId.HasValue && proyectoId.Value > 0)
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.ProyectoId == proyectoId.Value);
+            }
+
+            if (activo.HasValue)
+            {
+                empleadosFiltrados = empleadosFiltrados.Where(e => 
+                    e.Activo == activo.Value);
+            }
+
+            var empleados = empleadosFiltrados.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre).ToList();
+
+            // Crear el archivo Excel usando ClosedXML
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Empleados");
+
+            // Encabezados - Datos Básicos
+            int col = 1;
+            worksheet.Cell(1, col++).Value = "ID";
+            worksheet.Cell(1, col++).Value = "Legajo";
+            worksheet.Cell(1, col++).Value = "Apellido";
+            worksheet.Cell(1, col++).Value = "Nombre";
+            worksheet.Cell(1, col++).Value = "Documento";
+            worksheet.Cell(1, col++).Value = "CUIL";
+            worksheet.Cell(1, col++).Value = "Domicilio";
+            worksheet.Cell(1, col++).Value = "Ciudad";
+            worksheet.Cell(1, col++).Value = "Código Postal";
+            worksheet.Cell(1, col++).Value = "Provincia";
+            worksheet.Cell(1, col++).Value = "Cargo";
+            
+            // Fechas
+            worksheet.Cell(1, col++).Value = "Fecha Ingreso";
+            worksheet.Cell(1, col++).Value = "Fecha Alta";
+            worksheet.Cell(1, col++).Value = "Fecha Baja";
+            worksheet.Cell(1, col++).Value = "Forma Pago";
+            worksheet.Cell(1, col++).Value = "Estado";
+            
+            // Régimen y Proyecto
+            worksheet.Cell(1, col++).Value = "Régimen Laboral";
+            worksheet.Cell(1, col++).Value = "Proyecto Actual";
+            
+            // Datos de Liquidación
+            worksheet.Cell(1, col++).Value = "Convenio";
+            worksheet.Cell(1, col++).Value = "Tipo Liquidación";
+            worksheet.Cell(1, col++).Value = "Categoría";
+            worksheet.Cell(1, col++).Value = "Disciplina";
+            worksheet.Cell(1, col++).Value = "Valor Hora Básico";
+            worksheet.Cell(1, col++).Value = "Valor Convenido Diario";
+            worksheet.Cell(1, col++).Value = "Plus Altura";
+            worksheet.Cell(1, col++).Value = "Plus Eléctrico";
+            
+            // Auditoría
+            worksheet.Cell(1, col++).Value = "Fecha Creación";
+            worksheet.Cell(1, col++).Value = "Fecha Actualización";
+
+            int totalColumns = col - 1;
+
+            // Aplicar estilo a los encabezados
+            var headerRange = worksheet.Range(1, 1, 1, totalColumns);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightBlue;
+            headerRange.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+            headerRange.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
+
+            // Llenar datos
+            int row = 2;
+            foreach (var emp in empleados)
+            {
+                col = 1;
+                
+                // Datos Básicos
+                worksheet.Cell(row, col++).Value = emp.Id;
+                worksheet.Cell(row, col++).Value = emp.Legajo;
+                worksheet.Cell(row, col++).Value = emp.Apellido;
+                worksheet.Cell(row, col++).Value = emp.Nombre;
+                worksheet.Cell(row, col++).Value = emp.DocumentoIdentidad ?? "";
+                worksheet.Cell(row, col++).Value = emp.Cuil ?? "";
+                worksheet.Cell(row, col++).Value = emp.Domicilio ?? "";
+                worksheet.Cell(row, col++).Value = emp.CiudadNombre ?? "";
+                worksheet.Cell(row, col++).Value = emp.CodigoPostal ?? "";
+                worksheet.Cell(row, col++).Value = emp.ProvinciaNombre ?? "";
+                worksheet.Cell(row, col++).Value = emp.Cargo ?? "";
+                
+                // Fechas
+                worksheet.Cell(row, col++).Value = emp.FechaIngreso?.ToString("dd/MM/yyyy") ?? "";
+                worksheet.Cell(row, col++).Value = emp.FechaAlta?.ToString("dd/MM/yyyy") ?? "";
+                worksheet.Cell(row, col++).Value = emp.FechaBaja?.ToString("dd/MM/yyyy") ?? "";
+                worksheet.Cell(row, col++).Value = emp.FormaPago == Models.Enums.FormaPago.Quincenal ? "Quincenal" : "Mensual";
+                
+                // Estado
+                string estado = emp.Activo == true ? "Activo" : (emp.Activo == false ? "Inactivo" : "Pendiente");
+                worksheet.Cell(row, col++).Value = estado;
+                
+                // Régimen y Proyecto
+                worksheet.Cell(row, col++).Value = emp.RegimenNombre ?? "";
+                worksheet.Cell(row, col++).Value = emp.ProyectoNombre ?? "";
+                
+                // Datos de Liquidación
+                worksheet.Cell(row, col++).Value = emp.ConvenioNombre ?? "";
+                worksheet.Cell(row, col++).Value = emp.TipoLiquidacionNombre ?? "";
+                worksheet.Cell(row, col++).Value = emp.CategoriaNombre ?? "";
+                worksheet.Cell(row, col++).Value = emp.DisciplinaNombre ?? "";
+                
+                // Valores monetarios
+                if (emp.ValorHoraBasico.HasValue)
+                {
+                    worksheet.Cell(row, col).Value = emp.ValorHoraBasico.Value;
+                    worksheet.Cell(row, col).Style.NumberFormat.Format = "$#,##0.00";
+                }
+                col++;
+                
+                if (emp.ValorConvenidoDiario.HasValue)
+                {
+                    worksheet.Cell(row, col).Value = emp.ValorConvenidoDiario.Value;
+                    worksheet.Cell(row, col).Style.NumberFormat.Format = "$#,##0.00";
+                }
+                col++;
+                
+                // Plus
+                worksheet.Cell(row, col++).Value = emp.AplicaPlusAltura ? "Sí" : "No";
+                worksheet.Cell(row, col++).Value = emp.AplicaPlusElectrico ? "Sí" : "No";
+                
+                // Auditoría
+                worksheet.Cell(row, col++).Value = emp.CreatedAt.ToString("dd/MM/yyyy HH:mm");
+                worksheet.Cell(row, col++).Value = emp.UpdatedAt.ToString("dd/MM/yyyy HH:mm");
+                
+                row++;
+            }
+
+            // Ajustar ancho de columnas
+            worksheet.Columns().AdjustToContents();
+
+            // Guardar en un stream
+            using var stream = new System.IO.MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            // Generar nombre del archivo
+            var fileName = $"Empleados_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(stream.ToArray(), 
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al exportar empleados a Excel");
+            SetErrorMessage("Error al exportar los datos a Excel");
+            return RedirectToAction(nameof(Index));
+        }
+    }
 }

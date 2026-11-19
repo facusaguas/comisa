@@ -46,6 +46,7 @@ builder.Services.AddScoped<IActividadService, ActividadService>();
 builder.Services.AddScoped<IFeriadoService, FeriadoService>();
 builder.Services.AddScoped<IConceptoLiquidacionService, ConceptoLiquidacionService>();
 builder.Services.AddScoped<INovedadService, NovedadService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IPdfEmpleadoService, PdfEmpleadoService>();
 

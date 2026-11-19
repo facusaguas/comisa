@@ -18,13 +18,11 @@
                     </svg>
                     Novedades de Liquidación
                 </h2>
-                @if (ViewBag.FiltroEmpleado != null)
+                @if (ViewBag.FiltrosAplicados != null && ((List<string>)ViewBag.FiltrosAplicados).Any())
                 {
-                    <div class="text-muted mt-1">Filtrado por: @ViewBag.FiltroEmpleado</div>
-                }
-                else if (ViewBag.FiltroPeriodo != null)
-                {
-                    <div class="text-muted mt-1">Filtrado por: @ViewBag.FiltroPeriodo</div>
+                    <div class="text-muted mt-1">
+                        <strong>Filtros aplicados:</strong> @string.Join(" | ", (List<string>)ViewBag.FiltrosAplicados)
+                    </div>
                 }
             </div>
             <div class="col-auto ms-auto">
@@ -58,6 +56,99 @@
             </div>
         }
 
+        <!-- Panel de Filtros -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M5.5 5h13a1 1 0 0 1 .5 1.5l-5 5.5l0 7l-4 -3l0 -4l-5 -5.5a1 1 0 0 1 .5 -1.5" />
+                    </svg>
+                    Filtros de Búsqueda
+                </h3>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="collapse show" id="filtrosCollapse">
+                <div class="card-body">
+                    <form method="get" action="@Url.Action("Index")" id="filtrosForm">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Legajo</label>
+                                <input type="text" class="form-control" name="legajo" value="@ViewBag.FiltroLegajo" placeholder="Buscar por legajo">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">CUIL</label>
+                                <input type="text" class="form-control" name="cuil" value="@ViewBag.FiltroCuil" placeholder="Buscar por CUIL">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Proyecto</label>
+                                <select class="form-select" name="proyectoId">
+                                    <option value="">Todos los proyectos</option>
+                                    @foreach (var proyecto in (SelectList)ViewBag.Proyectos)
+                                    {
+                                        <option value="@proyecto.Value" selected="@(proyecto.Value == ViewBag.FiltroProyectoId?.ToString())">
+                                            @proyecto.Text
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tipo de Novedad</label>
+                                <select class="form-select" name="tipoNovedad">
+                                    <option value="">Todos los tipos</option>
+                                    @foreach (var tipo in (SelectList)ViewBag.TiposNovedad)
+                                    {
+                                        <option value="@tipo.Value" selected="@(tipo.Value == ViewBag.FiltroTipoNovedad?.ToString())">
+                                            @tipo.Text
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-3">
+                                <label class="form-label">Periodo (Mes/Año)</label>
+                                <input type="month" class="form-control" name="periodo" value="@ViewBag.FiltroPeriodo">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Quincena</label>
+                                <select class="form-select" name="quincena">
+                                    <option value="">Todas las quincenas</option>
+                                    <option value="1" selected="@(ViewBag.FiltroQuincena?.ToString() == "1")">Primera (1)</option>
+                                    <option value="2" selected="@(ViewBag.FiltroQuincena?.ToString() == "2")">Segunda (2)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                        <circle cx="10" cy="10" r="7" />
+                                        <line x1="21" y1="21" x2="15" y2="15" />
+                                    </svg>
+                                    Filtrar
+                                </button>
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                        <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+                                        <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+                                    </svg>
+                                    Limpiar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body">
                 @if (!Model.Any())
@@ -82,7 +173,10 @@
                         <table class="table table-vcenter card-table table-striped">
                             <thead>
                                 <tr>
+                                    <th>Legajo</th>
                                     <th>Empleado</th>
+                                    <th>CUIL</th>
+                                    <th>Proyecto</th>
                                     <th>Periodo/Quincena</th>
                                     <th>Tipo</th>
                                     <th>Fecha</th>
@@ -94,9 +188,10 @@
                                 @foreach (var novedad in Model)
                                 {
                                     <tr>
-                                        <td>
-                                            <strong>@novedad.Empleado.Legajo</strong> - @novedad.Empleado.Apellido, @novedad.Empleado.Nombre
-                                        </td>
+                                        <td><strong>@novedad.Empleado.Legajo</strong></td>
+                                        <td>@novedad.Empleado.Apellido, @novedad.Empleado.Nombre</td>
+                                        <td>@(novedad.Empleado.Cuil ?? "-")</td>
+                                        <td>@(novedad.Empleado.Proyecto?.Nombre ?? "-")</td>
                                         <td>@novedad.Periodo.ToString("yyyy-MM") / Q@novedad.Quincena</td>
                                         <td>
                                             @switch (novedad.TipoNovedad)
@@ -115,6 +210,12 @@
                                                     break;
                                                 case TipoNovedadLiquidacion.Baja:
                                                     <span class="badge bg-dark">Baja</span>
+                                                    break;
+                                                case TipoNovedadLiquidacion.Vacaciones:
+                                                    <span class="badge bg-purple">Vacaciones</span>
+                                                    break;
+                                                case TipoNovedadLiquidacion.Anticipo:
+                                                    <span class="badge bg-orange">Anticipo</span>
                                                     break;
                                             }
                                         </td>

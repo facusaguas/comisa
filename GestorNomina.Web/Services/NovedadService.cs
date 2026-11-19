@@ -51,6 +51,64 @@ public class NovedadService : INovedadService
             .ToListAsync();
     }
 
+    public async Task<List<Novedad>> GetFilteredAsync(
+        string? legajo, 
+        string? cuil, 
+        int? proyectoId, 
+        DateTime? periodo, 
+        int? quincena, 
+        TipoNovedadLiquidacion? tipoNovedad)
+    {
+        var query = _context.Novedades
+            .Include(n => n.Empleado)
+                .ThenInclude(e => e.Proyecto)
+            .AsQueryable();
+
+        // Filtro por legajo
+        if (!string.IsNullOrWhiteSpace(legajo))
+        {
+            query = query.Where(n => n.Empleado.Legajo.Contains(legajo));
+        }
+
+        // Filtro por CUIL
+        if (!string.IsNullOrWhiteSpace(cuil))
+        {
+            query = query.Where(n => n.Empleado.Cuil != null && n.Empleado.Cuil.Contains(cuil));
+        }
+
+        // Filtro por proyecto
+        if (proyectoId.HasValue)
+        {
+            query = query.Where(n => n.Empleado.ProyectoId == proyectoId.Value);
+        }
+
+        // Filtro por periodo (mes/año)
+        if (periodo.HasValue)
+        {
+            var periodoUtc = DateTime.SpecifyKind(periodo.Value.Date, DateTimeKind.Utc);
+            query = query.Where(n => n.Periodo == periodoUtc);
+        }
+
+        // Filtro por quincena
+        if (quincena.HasValue)
+        {
+            query = query.Where(n => n.Quincena == quincena.Value);
+        }
+
+        // Filtro por tipo de novedad
+        if (tipoNovedad.HasValue)
+        {
+            query = query.Where(n => n.TipoNovedad == tipoNovedad.Value);
+        }
+
+        return await query
+            .OrderByDescending(n => n.Periodo)
+            .ThenByDescending(n => n.Quincena)
+            .ThenBy(n => n.Empleado.Apellido)
+            .ThenBy(n => n.Empleado.Nombre)
+            .ToListAsync();
+    }
+
     public async Task<Novedad?> GetByIdAsync(int id)
     {
         return await _context.Novedades
